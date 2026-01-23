@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { StorageManager } from '@/lib/storage/StorageManager';
@@ -10,29 +10,45 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
-import type { Staff, Service, Appointment } from '@/types';
+import type { Staff, Service, AppointmentStatus } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
-export default function NewAppointmentPage() {
+export default function EditAppointmentPage() {
   const router = useRouter();
+  const params = useParams();
+  const appointmentId = params.id as string;
   const { user } = useAuth();
-  
-  // Create storage once with useMemo
   const storage = useMemo(() => (user ? new StorageManager(user.email) : null), [user]);
 
-  // Load data once with useMemo instead of useEffect + useState
-  const services = useMemo(() => storage?.getServices() ?? [], [storage]);
-  const staff = useMemo(() => storage?.getStaff() ?? [], [storage]);
+  // Load initial data with useMemo
+  const { services, staff, initialAppointment } = useMemo(() => {
+    if (!storage) {
+      return { services: [], staff: [], initialAppointment: null };
+    }
+
+    const servicesList = storage.getServices();
+    const staffList = storage.getStaff();
+    const apt = storage.getAppointments().find((a) => a.id === appointmentId);
+
+    return {
+      services: servicesList,
+      staff: staffList,
+      initialAppointment: apt || null,
+    };
+  }, [storage, appointmentId]);
 
   // Form state
-  const [customerName, setCustomerName] = useState('');
-  const [serviceId, setServiceId] = useState('');
-  const [staffId, setStaffId] = useState('');
-  const [appointmentDate, setAppointmentDate] = useState('');
-  const [appointmentTime, setAppointmentTime] = useState('');
+  const [customerName, setCustomerName] = useState(initialAppointment?.customer_name || '');
+  const [serviceId, setServiceId] = useState(initialAppointment?.service_id || '');
+  const [staffId, setStaffId] = useState(initialAppointment?.staff_id || '');
+  const [appointmentDate, setAppointmentDate] = useState(initialAppointment?.appointment_date || '');
+  const [appointmentTime, setAppointmentTime] = useState(initialAppointment?.appointment_time || '');
+  const [status, setStatus] = useState<AppointmentStatus>(initialAppointment?.status || 'Scheduled');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Calculate eligible staff using useMemo (derived state)
+  
+
+  // Calculate eligible staff using useMemo
   const eligibleStaff = useMemo(() => {
     if (!serviceId) return [];
     const service = services.find((s) => s.id === serviceId);
@@ -40,7 +56,7 @@ export default function NewAppointmentPage() {
     return staff.filter((s) => s.service_type === service.required_staff_type);
   }, [serviceId, services, staff]);
 
-  // Calculate conflict warning using useMemo (derived state)
+  // Calculate conflict warning using useMemo
   const conflictWarning = useMemo(() => {
     if (!staffId || !appointmentDate || !appointmentTime || !serviceId || !storage) {
       return '';
@@ -55,6 +71,7 @@ export default function NewAppointmentPage() {
 
     const appointments = storage.getAppointments();
     const hasConflict = appointments.some((a) => {
+      if (a.id === appointmentId) return false; // Exclude current appointment
       if (a.staff_id !== staffId) return false;
       if (a.appointment_date !== appointmentDate) return false;
       if (a.status === 'Cancelled') return false;
@@ -70,24 +87,30 @@ export default function NewAppointmentPage() {
     });
 
     return hasConflict ? 'This staff member already has an appointment at this time.' : '';
-  }, [staffId, appointmentDate, appointmentTime, serviceId, services, storage]);
+  }, [staffId, appointmentDate, appointmentTime, serviceId, services, storage, appointmentId]);
 
-  // Calculate staff load using useCallback
-  const getStaffLoad = useCallback((staffMemberId: string): number => {
-    if (!appointmentDate || !storage) return 0;
-    return storage
-      .getAppointments()
-      .filter(
-        (a) =>
-          a.staff_id === staffMemberId &&
-          a.appointment_date === appointmentDate &&
-          a.status !== 'Cancelled'
-      ).length;
-  }, [appointmentDate, storage]);
+  
+
+  // Calculate staff load
+  const getStaffLoad = useCallback(
+    (staffMemberId: string): number => {
+      if (!appointmentDate || !storage) return 0;
+      return storage
+        .getAppointments()
+        .filter(
+          (a) =>
+            a.id !== appointmentId && // Exclude current appointment
+            a.staff_id === staffMemberId &&
+            a.appointment_date === appointmentDate &&
+            a.status !== 'Cancelled'
+        ).length;
+    },
+    [appointmentDate, storage, appointmentId]
+  );
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
-    if (!storage || !user) return;
+    if (!storage) return;
 
     const newErrors: Record<string, string> = {};
 
@@ -102,78 +125,44 @@ export default function NewAppointmentPage() {
     }
 
     if (conflictWarning) {
-      alert('Please resolve the time conflict before creating the appointment.');
+      alert('Please resolve the time conflict before updating the appointment.');
       return;
     }
 
     const appointments = storage.getAppointments();
-    const service = services.find((s) => s.id === serviceId);
-    if (!service) return;
+    const appointment = appointments.find((a) => a.id === appointmentId);
 
-    let finalStaffId = staffId;
-    let inQueue = false;
-    let queuePosition: number | null = null;
+    if (appointment) {
+      appointment.customer_name = customerName.trim();
+      appointment.service_id = serviceId;
+      appointment.staff_id = staffId || null;
+      appointment.appointment_date = appointmentDate;
+      appointment.appointment_time = appointmentTime;
+      appointment.status = status;
+      appointment.updated_at = new Date().toISOString();
 
-    // Auto-assign logic
-    if (!staffId) {
-      const availableStaff = eligibleStaff.find((s) => {
-        const load = getStaffLoad(s.id);
-        return s.availability_status === 'Available' && load < s.daily_capacity;
-      });
-
-      if (!availableStaff) {
-        inQueue = true;
-        const queuedAppointments = appointments.filter((a) => a.in_queue);
-        queuePosition =
-          queuedAppointments.length > 0
-            ? Math.max(...queuedAppointments.map((a) => a.queue_position || 0)) + 1
-            : 1;
-      } else {
-        finalStaffId = availableStaff.id;
-      }
-    }
-
-    const newAppointment: Appointment = {
-      id: `apt_${Date.now()}`,
-      user_id: user.email,
-      customer_name: customerName.trim(),
-      service_id: serviceId,
-      staff_id: finalStaffId || null,
-      appointment_date: appointmentDate,
-      appointment_time: appointmentTime,
-      status: 'Scheduled',
-      in_queue: inQueue,
-      queue_position: queuePosition,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    appointments.push(newAppointment);
-    storage.setAppointments(appointments);
-
-    if (inQueue) {
+      storage.setAppointments(appointments);
       storage.addActivityLog({
-        action_type: 'appointment_queued',
-        description: `Appointment for "${customerName}" added to queue (position ${queuePosition})`,
+        action_type: 'appointment_updated',
+        description: `Appointment for "${customerName}" updated`,
         appointment_id: null,
       });
-    } else {
-      const staffMember = staff.find((s) => s.id === finalStaffId);
-      storage.addActivityLog({
-        action_type: 'appointment_created',
-        description: `Appointment for "${customerName}" created and assigned to ${staffMember?.name || 'staff'}`,
-        appointment_id: null,
-      });
-    }
 
-    router.push('/appointments');
+      router.push('/appointments');
+    }
   };
+
+  // Redirect if appointment not found
+  if (!initialAppointment) {
+    router.push('/appointments');
+    return null;
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">New Appointment</h1>
-        <p className="text-gray-600 mt-1">Fill in the appointment details</p>
+        <h1 className="text-3xl font-bold text-gray-900">Edit Appointment</h1>
+        <p className="text-gray-600 mt-1">Update appointment details</p>
       </div>
 
       <Card>
@@ -218,15 +207,26 @@ export default function NewAppointmentPage() {
             required
           />
 
+          <Select
+            label="Status"
+            value={status}
+            onChange={(val) => setStatus(val as AppointmentStatus)}
+            options={[
+              { value: 'Scheduled', label: 'Scheduled' },
+              { value: 'Completed', label: 'Completed' },
+              { value: 'Cancelled', label: 'Cancelled' },
+              { value: 'No-Show', label: 'No-Show' },
+            ]}
+            required
+          />
+
           {serviceId && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assign Staff (Optional)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Assign Staff</label>
               <div className="space-y-2">
                 {eligibleStaff.length === 0 ? (
                   <p className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg">
-                    No eligible staff for this service type. Please create staff members first.
+                    No eligible staff for this service type.
                   </p>
                 ) : (
                   <>
@@ -238,10 +238,8 @@ export default function NewAppointmentPage() {
                           : 'border-gray-300 hover:border-gray-400'
                       }`}
                     >
-                      <p className="font-medium">Auto-assign or Queue</p>
-                      <p className="text-sm text-gray-600">
-                        System will assign available staff or add to queue
-                      </p>
+                      <p className="font-medium">Unassign Staff</p>
+                      <p className="text-sm text-gray-600">Remove staff assignment</p>
                     </div>
                     {eligibleStaff.map((s) => {
                       const load = getStaffLoad(s.id);
@@ -267,7 +265,7 @@ export default function NewAppointmentPage() {
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-sm">
-                                {load} / {s.daily_capacity} appointments today
+                                {load} / {s.daily_capacity} today
                               </span>
                               {isOnLeave ? (
                                 <Badge variant="warning">On Leave</Badge>
@@ -302,9 +300,7 @@ export default function NewAppointmentPage() {
                 <AlertCircle size={20} className="mt-0.5" />
                 <div>
                   <p className="font-medium">{conflictWarning}</p>
-                  <p className="text-sm mt-1">
-                    Please choose another staff member or change the time.
-                  </p>
+                  <p className="text-sm mt-1">Please choose another staff member or change the time.</p>
                 </div>
               </div>
             </motion.div>
@@ -312,13 +308,9 @@ export default function NewAppointmentPage() {
 
           <div className="flex items-center gap-3 pt-4">
             <Button type="submit" variant="primary">
-              Create Appointment
+              Update Appointment
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => router.push('/appointments')}
-            >
+            <Button type="button" variant="secondary" onClick={() => router.push('/appointments')}>
               Cancel
             </Button>
           </div>
