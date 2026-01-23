@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 interface AuthContextType {
   user: { email: string } | null;
@@ -15,17 +15,25 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<{ email: string } | null>(null);
-
-  useEffect(() => {
-    // React 19: useEffect works the same
-    const savedUser = localStorage.getItem('app_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+  const [user, setUser] = useState<{ email: string } | null>(() => {
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('app_user');
+      if (savedUser) {
+        try {
+          return JSON.parse(savedUser);
+        } catch (e) {
+          console.error("Failed to parse user during init", e);
+          return null;
+        }
+      }
     }
-  }, []);
+    // 2. Default to null for Server and if no user is found
+    return null;
+  });
 
   const signup = async (email: string, password: string): Promise<void> => {
+    if (typeof window === 'undefined') return;
+
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const users = JSON.parse(localStorage.getItem('app_users') || '[]');
@@ -43,8 +51,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const login = async (email: string, password: string): Promise<void> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    if (typeof window === 'undefined') return;
 
+    await new Promise((resolve) => setTimeout(resolve, 500));
     const users = JSON.parse(localStorage.getItem('app_users') || '[]');
     const foundUser = users.find(
       (u: { email: string; password: string }) =>
@@ -61,6 +70,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const demoLogin = async (): Promise<void> => {
+    if (typeof window === 'undefined') return;
+
     await new Promise((resolve) => setTimeout(resolve, 500));
     const demoUser = { email: 'demo@example.com' };
 
@@ -69,6 +80,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const logout = (): void => {
+    if (typeof window === 'undefined') return;
+    
     setUser(null);
     localStorage.removeItem('app_user');
   };

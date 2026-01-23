@@ -1,6 +1,6 @@
 'use client';
 
-import React, {  useState } from 'react';
+import React, {  useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/ui/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -15,9 +15,14 @@ export default function DashboardLayout({
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
+
   if (!user) {
-    router.push('/login');
-    return null;
+    return null; 
   }
 
   return (

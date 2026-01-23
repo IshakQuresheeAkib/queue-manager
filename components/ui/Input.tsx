@@ -49,7 +49,7 @@ export const Input: React.FC<InputProps> = ({
           className={`
             w-full px-4 py-2 
             ${icon ? 'pl-10' : ''} 
-            border rounded-lg 
+            border rounded-lg text-gray-700
             focus:ring-2 focus:ring-blue-500 focus:border-transparent
             transition-all duration-200
             ${error ? 'border-red-500' : 'border-gray-300'}

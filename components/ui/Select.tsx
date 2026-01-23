@@ -25,7 +25,7 @@ export const Select: React.FC<{
         onChange={(e) => onChange(e.target.value)}
         className={`
           w-full px-4 py-2 
-          border rounded-lg 
+          border rounded-lg text-gray-700 
           focus:ring-2 focus:ring-blue-500 focus:border-transparent
           transition-all duration-200
           ${error ? 'border-red-500' : 'border-gray-300'}
