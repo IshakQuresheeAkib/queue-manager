@@ -238,7 +238,7 @@ export default function EditAppointmentPage() {
                           : 'border-gray-300 hover:border-gray-400'
                       }`}
                     >
-                      <p className="font-medium">Unassign Staff</p>
+                      <p className="font-medium text-gray-700">Unassign Staff</p>
                       <p className="text-sm text-gray-600">Remove staff assignment</p>
                     </div>
                     {eligibleStaff.map((s) => {
@@ -260,11 +260,11 @@ export default function EditAppointmentPage() {
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium">{s.name}</p>
+                              <p className="font-medium text-gray-700">{s.name}</p>
                               <p className="text-sm text-gray-600">{s.service_type}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-sm">
+                              <span className="text-sm text-gray-500">
                                 {load} / {s.daily_capacity} today
                               </span>
                               {isOnLeave ? (
@@ -299,7 +299,7 @@ export default function EditAppointmentPage() {
               <div className="flex items-start gap-2">
                 <AlertCircle size={20} className="mt-0.5" />
                 <div>
-                  <p className="font-medium">{conflictWarning}</p>
+                  <p className="font-medium text-gray-700">{conflictWarning}</p>
                   <p className="text-sm mt-1">Please choose another staff member or change the time.</p>
                 </div>
               </div>

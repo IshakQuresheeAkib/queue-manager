@@ -1,13 +1,19 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+import { User } from '@/types';
+import { getUserProfile } from '@/lib/supabase/queries';
 
 interface AuthContextType {
-  user: { email: string } | null;
+  user: User | null;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   demoLogin: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -15,79 +21,116 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<{ email: string } | null>(() => {
-    if (typeof window !== 'undefined') {
-      const savedUser = localStorage.getItem('app_user');
-      if (savedUser) {
-        try {
-          return JSON.parse(savedUser);
-        } catch (e) {
-          console.error("Failed to parse user during init", e);
-          return null;
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
+
+  const loadUserWithProfile = async (supabaseUser: SupabaseUser): Promise<User> => {
+    const profile = await getUserProfile(supabaseUser.id);
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email!,
+      profile,
+    };
+  };
+
+  const refreshProfile = async (): Promise<void> => {
+    if (!user) return;
+    const profile = await getUserProfile(user.id);
+    setUser({ ...user, profile });
+  };
+
+  useEffect(() => {
+    // Check active session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const userWithProfile = await loadUserWithProfile(session.user);
+          setUser(userWithProfile);
         }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        setLoading(false);
       }
-    }
-    // 2. Default to null for Server and if no user is found
-    return null;
-  });
+    };
+
+    initializeAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session?.user) {
+          const userWithProfile = await loadUserWithProfile(session.user);
+          setUser(userWithProfile);
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const signup = async (email: string, password: string): Promise<void> => {
-    if (typeof window === 'undefined') return;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    if (error) throw error;
 
-    const users = JSON.parse(localStorage.getItem('app_users') || '[]');
-
-    if (users.find((u: { email: string }) => u.email === email)) {
-      throw new Error('User already exists');
+    if (data.user) {
+      const userWithProfile = await loadUserWithProfile(data.user);
+      setUser(userWithProfile);
     }
-
-    users.push({ email, password });
-    localStorage.setItem('app_users', JSON.stringify(users));
-
-    const newUser = { email };
-    setUser(newUser);
-    localStorage.setItem('app_user', JSON.stringify(newUser));
   };
 
   const login = async (email: string, password: string): Promise<void> => {
-    if (typeof window === 'undefined') return;
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const users = JSON.parse(localStorage.getItem('app_users') || '[]');
-    const foundUser = users.find(
-      (u: { email: string; password: string }) =>
-        u.email === email && u.password === password
-    );
+    if (error) throw error;
 
-    if (!foundUser) {
-      throw new Error('Invalid credentials');
+    if (data.user) {
+      const userWithProfile = await loadUserWithProfile(data.user);
+      setUser(userWithProfile);
     }
-
-    const newUser = { email };
-    setUser(newUser);
-    localStorage.setItem('app_user', JSON.stringify(newUser));
   };
 
   const demoLogin = async (): Promise<void> => {
-    if (typeof window === 'undefined') return;
+    // Create or login with demo account
+    const demoEmail = 'demo@example.com';
+    const demoPassword = 'demo123456';
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const demoUser = { email: 'demo@example.com' };
-
-    setUser(demoUser);
-    localStorage.setItem('app_user', JSON.stringify(demoUser));
+    try {
+      // Try to sign in first
+      await login(demoEmail, demoPassword);
+    } catch (error) {
+      // If sign in fails, try to sign up
+      try {
+        await signup(demoEmail, demoPassword);
+      } catch (signupError) {
+        // If signup also fails, try login again (user might already exist)
+        await login(demoEmail, demoPassword);
+      }
+    }
   };
 
-  const logout = (): void => {
-    if (typeof window === 'undefined') return;
-    
+  const logout = async (): Promise<void> => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     setUser(null);
-    localStorage.removeItem('app_user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, demoLogin }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, demoLogin, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

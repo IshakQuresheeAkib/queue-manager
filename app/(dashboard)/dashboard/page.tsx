@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Calendar, CheckCircle, Clock, List, User, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { StorageManager } from '@/lib/storage/StorageManager';
+import { getAppointments, getStaff, getActivityLogs } from '@/lib/supabase/queries';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -15,40 +15,35 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
   
-  // Create storage instance only once using useMemo
-  const storage = useMemo(() => user ? new StorageManager(user.email) : null, [user]);
-
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // FIX: Move data loading to a separate function and call it properly
   useEffect(() => {
-    if (!storage) return;
+    if (!user) return;
 
-    const loadData = () => {
-      const loadedAppointments = storage.getAppointments();
-      const loadedStaff = storage.getStaff();
-      const loadedLogs = storage.getActivityLogs().slice(0, 10);
-      
-      setAppointments(loadedAppointments);
-      setStaff(loadedStaff);
-      setActivityLogs(loadedLogs);
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const [appointmentsData, staffData, logsData] = await Promise.all([
+          getAppointments(user.id),
+          getStaff(user.id),
+          getActivityLogs(user.id, 10)
+        ]);
+        
+        setAppointments(appointmentsData);
+        setStaff(staffData);
+        setActivityLogs(logsData);
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadData();
-
-    // Optional: Add event listener for storage changes if you want real-time updates
-    const handleStorageChange = () => {
-      loadData();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [storage]);
+  }, [user]);
 
   const today = new Date().toISOString().split('T')[0];
   const todayAppointments = appointments.filter(
@@ -61,6 +56,17 @@ export default function DashboardPage() {
   const getStaffLoad = (staffId: string): number => {
     return todayAppointments.filter((a) => a.staff_id === staffId).length;
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
