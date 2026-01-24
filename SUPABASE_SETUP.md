@@ -59,28 +59,86 @@ This will create:
 4. Set as **Public bucket** (check the box)
 5. Click "Create"
 
-#### Add Storage Policy:
+#### Add Storage Policies via SQL Editor:
 
-1. Click on the `profiles` bucket
-2. Go to **Policies** tab
-3. Click "New Policy"
-4. Choose "For full customization"
-5. Add **INSERT policy**:
-   - Name: "Users can upload their own profile images"
-   - Target roles: `authenticated`
-   - Policy definition:
-   ```sql
-   (bucket_id = 'profiles'::text) AND ((auth.uid())::text = (storage.foldername(name))[1])
-   ```
-6. Add **SELECT policy**:
-   - Name: "Profile images are publicly accessible"
-   - Target roles: `public`
-   - Policy definition:
-   ```sql
-   bucket_id = 'profiles'::text
-   ```
+Run this SQL in the **SQL Editor** to set up storage policies:
 
-### 6. Install Dependencies & Run
+```sql
+-- Storage policies for profile images
+-- Users can upload to their own folder (folder name = user_id)
+
+-- INSERT policy
+CREATE POLICY "Users can upload own avatar"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'profiles' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- UPDATE policy
+CREATE POLICY "Users can update own avatar"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'profiles' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- DELETE policy
+CREATE POLICY "Users can delete own avatar"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'profiles' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- SELECT policy (public read)
+CREATE POLICY "Anyone can view avatars"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'profiles');
+```
+
+### 6. Enable Realtime (for Live Updates)
+
+The app uses Supabase Realtime for live updates on the Dashboard and Queue pages.
+
+1. In Supabase dashboard, go to **Database** → **Replication**
+2. Under "Supabase Realtime", click **0 tables** (or "Manage")
+3. Enable replication for these tables:
+   - ✅ `appointments`
+   - ✅ `staff`
+   - ✅ `services`
+   - ✅ `activity_logs`
+4. Click "Save"
+
+**Alternative: Using SQL Editor:**
+
+```sql
+-- Enable realtime for all tables
+ALTER PUBLICATION supabase_realtime ADD TABLE appointments;
+ALTER PUBLICATION supabase_realtime ADD TABLE staff;
+ALTER PUBLICATION supabase_realtime ADD TABLE services;
+ALTER PUBLICATION supabase_realtime ADD TABLE activity_logs;
+```
+
+### 7. Create Demo User (Optional)
+
+For testing purposes, you can create a demo account:
+
+1. In Supabase dashboard, go to **Authentication** → **Users**
+2. Click **Add user** → **Create new user**
+3. Fill in:
+   - Email: `demo@example.com`
+   - Password: `d#1aEdmO(`
+   - ✅ Check "Auto Confirm User"
+4. Click "Create user"
+
+Now anyone can try the app using the demo credentials shown on the login page.
+
+### 8. Install Dependencies & Run
 
 ```bash
 npm install
@@ -94,9 +152,15 @@ Your app should now be running at `http://localhost:3000`
 ### 🔐 Authentication
 - ✅ Signup with email/password stored in Supabase Auth
 - ✅ Login with persistent session (survives hard reload)
-- ✅ Demo account functionality
+- ✅ Demo account functionality (demo@example.com / d#1aEdmO()
 - ✅ Automatic logout on session expiry
 - ✅ Protected routes with middleware
+
+### 🔄 Realtime Updates
+- ✅ Live appointment updates on Dashboard & Queue
+- ✅ Staff availability changes reflected instantly
+- ✅ Activity logs update in real-time
+- ✅ No page refresh needed for latest data
 
 ### 👤 User Profile
 - ✅ Profile creation (auto-created on signup)
@@ -258,6 +322,7 @@ All types are strictly typed in `types/index.ts` and `lib/supabase/database.type
 - `lib/supabase/server.ts` - Server Supabase client
 - `lib/supabase/database.types.ts` - TypeScript database types
 - `lib/supabase/queries.ts` - All database query functions
+- `lib/supabase/realtime.ts` - Realtime subscription hooks
 - `lib/supabase/schema.sql` - Database schema SQL
 
 ### Authentication
@@ -287,11 +352,18 @@ After setup is complete, you can:
    - Configure email templates
    - Enable email confirmation
 
-3. **Add More Features**:
-   - Real-time subscriptions for live updates
-   - Email notifications
-   - Calendar integrations
-   - Analytics dashboard
+3. **Configure Session Expiry** (Optional):
+   - Go to Supabase **Authentication** → **Settings**
+   - Under "Sessions", configure:
+     - JWT expiry time (default: 3600 seconds / 1 hour)
+     - Refresh token rotation
+   - For longer sessions, increase JWT expiry (e.g., 86400 for 24 hours)
+
+4. **Add More Features**:
+   - Email notifications for appointments
+   - Calendar integrations (Google Calendar, Outlook)
+   - Analytics dashboard with charts
+   - SMS reminders via Twilio
 
 ## 📞 Support
 

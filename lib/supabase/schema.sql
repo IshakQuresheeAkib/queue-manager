@@ -199,3 +199,48 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ============================================
+-- STORAGE BUCKET AND POLICIES
+-- ============================================
+-- Note: Run these in Supabase SQL Editor separately if bucket doesn't exist
+
+-- Create profiles bucket (for avatar images)
+-- INSERT INTO storage.buckets (id, name, public)
+-- VALUES ('profiles', 'profiles', true)
+-- ON CONFLICT (id) DO NOTHING;
+
+-- Storage policies for profile images
+-- Users can upload to their own folder (folder name = user_id)
+-- DROP POLICY IF EXISTS "Users can upload own avatar" ON storage.objects;
+-- CREATE POLICY "Users can upload own avatar"
+-- ON storage.objects FOR INSERT
+-- TO authenticated
+-- WITH CHECK (
+--   bucket_id = 'profiles' AND
+--   (storage.foldername(name))[1] = auth.uid()::text
+-- );
+
+-- DROP POLICY IF EXISTS "Users can update own avatar" ON storage.objects;
+-- CREATE POLICY "Users can update own avatar"
+-- ON storage.objects FOR UPDATE
+-- TO authenticated
+-- USING (
+--   bucket_id = 'profiles' AND
+--   (storage.foldername(name))[1] = auth.uid()::text
+-- );
+
+-- DROP POLICY IF EXISTS "Users can delete own avatar" ON storage.objects;
+-- CREATE POLICY "Users can delete own avatar"
+-- ON storage.objects FOR DELETE
+-- TO authenticated
+-- USING (
+--   bucket_id = 'profiles' AND
+--   (storage.foldername(name))[1] = auth.uid()::text
+-- );
+
+-- DROP POLICY IF EXISTS "Anyone can view avatars" ON storage.objects;
+-- CREATE POLICY "Anyone can view avatars"
+-- ON storage.objects FOR SELECT
+-- TO public
+-- USING (bucket_id = 'profiles');

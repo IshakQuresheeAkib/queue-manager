@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Calendar, CheckCircle, Clock, List, User, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getAppointments, getStaff, getActivityLogs } from '@/lib/supabase/queries';
+import { useAppointmentsRealtime, useStaffRealtime, useActivityLogsRealtime } from '@/lib/supabase/realtime';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import type { Appointment, Staff, ActivityLog } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
@@ -45,6 +47,11 @@ export default function DashboardPage() {
     loadData();
   }, [user]);
 
+  // Real-time subscriptions for live updates
+  useAppointmentsRealtime(user?.id ?? '', setAppointments);
+  useStaffRealtime(user?.id ?? '', setStaff);
+  useActivityLogsRealtime(user?.id ?? '', setActivityLogs, 10);
+
   const today = new Date().toISOString().split('T')[0];
   const todayAppointments = appointments.filter(
     (a) => a.appointment_date === today && a.status !== 'Cancelled'
@@ -53,19 +60,12 @@ export default function DashboardPage() {
   const pendingToday = todayAppointments.filter((a) => a.status === 'Scheduled').length;
   const queueCount = appointments.filter((a) => a.in_queue).length;
 
-  const getStaffLoad = (staffId: string): number => {
+  const getStaffLoad = useCallback((staffId: string): number => {
     return todayAppointments.filter((a) => a.staff_id === staffId).length;
-  };
+  }, [todayAppointments]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner size="xl" text="Loading dashboard..." fullScreen />;
   }
 
   return (

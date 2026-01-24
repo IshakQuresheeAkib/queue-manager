@@ -1,14 +1,15 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { User as SupabaseUser } from '@supabase/supabase-js';
-import { User } from '@/types';
+import type { User } from '@/types';
 import { getUserProfile } from '@/lib/supabase/queries';
+import { DEMO_EMAIL, DEMO_PASSWORD } from '@/lib/constants/demo';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  initializing: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -22,115 +23,136 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
+  const supabase = useMemo(() => createClient(), []);
 
-  const loadUserWithProfile = async (supabaseUser: SupabaseUser): Promise<User> => {
-    const profile = await getUserProfile(supabaseUser.id);
-    return {
-      id: supabaseUser.id,
-      email: supabaseUser.email!,
-      profile,
-    };
-  };
-
-  const refreshProfile = async (): Promise<void> => {
+  const refreshProfile = useCallback(async (): Promise<void> => {
     if (!user) return;
     const profile = await getUserProfile(user.id);
-    setUser({ ...user, profile });
-  };
+    setUser(prev => prev ? { ...prev, profile } : null);
+  }, [user]);
 
   useEffect(() => {
-    // Check active session
-    const initializeAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const userWithProfile = await loadUserWithProfile(session.user);
-          setUser(userWithProfile);
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    let mounted = true;
 
-    initializeAuth();
-
-    // Listen for auth changes
+    // Use onAuthStateChange as primary - it handles INITIAL_SESSION event
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        if (!mounted) return;
+        
         if (session?.user) {
-          const userWithProfile = await loadUserWithProfile(session.user);
-          setUser(userWithProfile);
+          setUser({
+            id: session.user.id,
+            email: session.user.email ?? '',
+            profile: null,
+          });
+          setInitializing(false);
+          
+          // Load profile in background
+          getUserProfile(session.user.id)
+            .then(profile => {
+              if (mounted) {
+                setUser(prev => prev ? { ...prev, profile } : null);
+              }
+            })
+            .catch();
         } else {
           setUser(null);
+          setInitializing(false);
         }
-        setLoading(false);
       }
     );
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const signup = async (email: string, password: string): Promise<void> => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-
-    if (data.user) {
-      const userWithProfile = await loadUserWithProfile(data.user);
-      setUser(userWithProfile);
-    }
-  };
-
-  const login = async (email: string, password: string): Promise<void> => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-
-    if (data.user) {
-      const userWithProfile = await loadUserWithProfile(data.user);
-      setUser(userWithProfile);
-    }
-  };
-
-  const demoLogin = async (): Promise<void> => {
-    // Create or login with demo account
-    const demoEmail = 'demo@example.com';
-    const demoPassword = 'demo123456';
-
-    try {
-      // Try to sign in first
-      await login(demoEmail, demoPassword);
-    } catch (error) {
-      // If sign in fails, try to sign up
-      try {
-        await signup(demoEmail, demoPassword);
-      } catch (signupError) {
-        // If signup also fails, try login again (user might already exist)
-        await login(demoEmail, demoPassword);
+    // Fallback timeout in case onAuthStateChange doesn't fire (defensive)
+    const fallbackTimeout = setTimeout(() => {
+      if (mounted) {
+        setInitializing(false);
       }
-    }
-  };
+    }, 3000);
 
-  const logout = async (): Promise<void> => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    setUser(null);
-  };
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+      clearTimeout(fallbackTimeout);
+    };
+  }, [supabase]);
+
+  const signup = useCallback(async (email: string, password: string): Promise<void> => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      // onAuthStateChange will handle setting user
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  const login = useCallback(async (email: string, password: string): Promise<void> => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      // onAuthStateChange will handle setting user
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  const demoLogin = useCallback(async (): Promise<void> => {
+    // Try login first (most common case)
+    try {
+      await login(DEMO_EMAIL, DEMO_PASSWORD);
+      return;
+    } catch {
+      // Login failed, try signup
+    }
+
+    // If login fails, try creating the account
+    try {
+      await signup(DEMO_EMAIL, DEMO_PASSWORD);
+      return;
+    } catch {
+      // Signup failed, try login one more time
+    }
+
+    // Final attempt - login again (in case signup succeeded but returned error)
+    await login(DEMO_EMAIL, DEMO_PASSWORD);
+  }, [login, signup]);
+
+  const logout = useCallback(async (): Promise<void> => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  const contextValue = useMemo(() => ({
+    user,
+    loading,
+    initializing,
+    login,
+    signup,
+    logout,
+    demoLogin,
+    refreshProfile,
+  }), [user, loading, initializing, login, signup, logout, demoLogin, refreshProfile]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, demoLogin, refreshProfile }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

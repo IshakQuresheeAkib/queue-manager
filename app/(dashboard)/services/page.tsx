@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import type { Service, ServiceDuration } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
@@ -178,8 +179,8 @@ export default function ServicesPage() {
 
       {loading ? (
         <Card>
-          <div className="text-center py-12">
-            <p className="text-gray-500">Loading services...</p>
+          <div className="flex justify-center py-12">
+            <LoadingSpinner size="lg" text="Loading services..." />
           </div>
         </Card>
       ) : services.length === 0 ? (

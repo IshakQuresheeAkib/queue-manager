@@ -357,13 +357,32 @@ export async function getStaffWithLoad(userId: string, date: string): Promise<St
 // Upload profile image to Supabase Storage
 export async function uploadProfileImage(userId: string, file: File): Promise<string | null> {
   const supabase = createClient();
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${userId}-${Date.now()}.${fileExt}`;
-  const filePath = `avatars/${fileName}`;
+  
+  // Validate file type
+  const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (!validTypes.includes(file.type)) {
+    console.error('Invalid file type:', file.type);
+    return null;
+  }
 
+  const fileExt = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+  // Use userId as folder name for RLS policy compliance
+  const fileName = `${userId}/${Date.now()}.${fileExt}`;
+
+  // Delete existing avatar files for this user first
+  const { data: existingFiles } = await supabase.storage
+    .from('profiles')
+    .list(userId);
+
+  if (existingFiles && existingFiles.length > 0) {
+    const filesToDelete = existingFiles.map(f => `${userId}/${f.name}`);
+    await supabase.storage.from('profiles').remove(filesToDelete);
+  }
+
+  // Upload new avatar
   const { error: uploadError } = await supabase.storage
     .from('profiles')
-    .upload(filePath, file, {
+    .upload(fileName, file, {
       cacheControl: '3600',
       upsert: true,
     });
@@ -373,6 +392,6 @@ export async function uploadProfileImage(userId: string, file: File): Promise<st
     return null;
   }
 
-  const { data } = supabase.storage.from('profiles').getPublicUrl(filePath);
+  const { data } = supabase.storage.from('profiles').getPublicUrl(fileName);
   return data.publicUrl;
 }

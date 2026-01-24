@@ -3,10 +3,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { List, Calendar, Clock, Briefcase, ArrowRight } from 'lucide-react';
 import { getAppointmentsWithDetails, getStaff, getServices, updateAppointment, addActivityLog } from '@/lib/supabase/queries';
+import { useRealtimeSubscription } from '@/lib/supabase/realtime';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import type { AppointmentWithDetails, Staff, Service } from '@/types';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import type { AppointmentWithDetails, Staff, Service, Appointment } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
 export default function QueuePage() {
@@ -49,6 +51,24 @@ export default function QueuePage() {
 
     fetchData();
   }, [user]);
+
+  // Real-time subscription for queue updates
+  const handleAppointmentChange = useCallback(async () => {
+    if (!user) return;
+    const appointmentsData = await getAppointmentsWithDetails(user.id);
+    const queued = appointmentsData
+      .filter((a) => a.in_queue)
+      .sort((a, b) => (a.queue_position || 0) - (b.queue_position || 0));
+    setQueuedAppointments(queued);
+  }, [user]);
+
+  useRealtimeSubscription<Appointment>({
+    table: 'appointments',
+    userId: user?.id ?? '',
+    onInsert: handleAppointmentChange,
+    onUpdate: handleAppointmentChange,
+    onDelete: handleAppointmentChange,
+  });
 
   const assignFromQueue = useCallback(async (appointmentId: string): Promise<void> => {
     if (!user) return;
@@ -143,8 +163,8 @@ export default function QueuePage() {
 
       {loading ? (
         <Card>
-          <div className="text-center py-12">
-            <p className="text-gray-500">Loading queue...</p>
+          <div className="flex justify-center py-12">
+            <LoadingSpinner size="lg" text="Loading queue..." />
           </div>
         </Card>
       ) : queuedAppointments.length === 0 ? (

@@ -9,6 +9,7 @@ import { getUserProfile, updateUserProfile, uploadProfileImage } from '@/lib/sup
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import type { UserProfile } from '@/types';
 
 export default function ProfilePage() {
@@ -131,14 +132,7 @@ export default function ProfilePage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner size="xl" text="Loading..." fullScreen />;
   }
 
   return (

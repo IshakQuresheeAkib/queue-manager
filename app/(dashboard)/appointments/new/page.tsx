@@ -10,7 +10,8 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
-import type { Staff, Service } from '@/types';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import type { Staff, Service, Appointment } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
 export default function NewAppointmentPage() {
@@ -19,6 +20,7 @@ export default function NewAppointmentPage() {
   
   const [services, setServices] = useState<Service[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -38,12 +40,14 @@ export default function NewAppointmentPage() {
       try {
         setLoading(true);
         setError(null);
-        const [servicesData, staffData] = await Promise.all([
+        const [servicesData, staffData, appointmentsData] = await Promise.all([
           getServices(user.id),
           getStaff(user.id),
+          getAppointments(user.id),
         ]);
         setServices(servicesData);
         setStaff(staffData);
+        setAppointments(appointmentsData);
       } catch (err) {
         console.error('Error loading data:', err);
         setError('Failed to load form data');
@@ -76,27 +80,34 @@ export default function NewAppointmentPage() {
     const startTime = hours * 60 + minutes;
     const endTime = startTime + service.duration;
 
-    // Note: This will need appointments data which we'll fetch in handleSubmit
-    // For now, we'll simplify and check in handleSubmit
-    return '';
-  }, [staffId, appointmentDate, appointmentTime, serviceId, services]);
+    const hasConflict = appointments.some((a) => {
+      if (a.staff_id !== staffId) return false;
+      if (a.appointment_date !== appointmentDate) return false;
+      if (a.status === 'Cancelled') return false;
 
-  // Calculate staff load using useCallback
-  const getStaffLoad = useCallback(async (staffMemberId: string): Promise<number> => {
-    if (!appointmentDate || !user) return 0;
-    try {
-      const appointments = await getAppointments(user.id);
-      return appointments.filter(
-        (a) =>
-          a.staff_id === staffMemberId &&
-          a.appointment_date === appointmentDate &&
-          a.status !== 'Cancelled'
-      ).length;
-    } catch (err) {
-      console.error('Error getting staff load:', err);
-      return 0;
-    }
-  }, [appointmentDate, user]);
+      const aptService = services.find((s) => s.id === a.service_id);
+      if (!aptService) return false;
+
+      const [aptHours, aptMinutes] = a.appointment_time.split(':').map(Number);
+      const aptStartTime = aptHours * 60 + aptMinutes;
+      const aptEndTime = aptStartTime + aptService.duration;
+
+      return startTime < aptEndTime && endTime > aptStartTime;
+    });
+
+    return hasConflict ? 'This staff member already has an appointment at this time.' : '';
+  }, [staffId, appointmentDate, appointmentTime, serviceId, services, appointments]);
+
+  // Calculate staff load from appointments state
+  const getStaffLoad = useCallback((staffMemberId: string): number => {
+    if (!appointmentDate) return 0;
+    return appointments.filter(
+      (a) =>
+        a.staff_id === staffMemberId &&
+        a.appointment_date === appointmentDate &&
+        a.status !== 'Cancelled'
+    ).length;
+  }, [appointmentDate, appointments]);
 
   // Store staff loads in state
   const [staffLoads, setStaffLoads] = useState<Record<string, number>>({});
@@ -105,15 +116,11 @@ export default function NewAppointmentPage() {
   useEffect(() => {
     if (!appointmentDate || eligibleStaff.length === 0) return;
 
-    const updateLoads = async () => {
-      const loads: Record<string, number> = {};
-      for (const s of eligibleStaff) {
-        loads[s.id] = await getStaffLoad(s.id);
-      }
-      setStaffLoads(loads);
-    };
-
-    updateLoads();
+    const loads: Record<string, number> = {};
+    for (const s of eligibleStaff) {
+      loads[s.id] = getStaffLoad(s.id);
+    }
+    setStaffLoads(loads);
   }, [appointmentDate, eligibleStaff, getStaffLoad]);
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
@@ -259,8 +266,8 @@ export default function NewAppointmentPage() {
 
       {loading ? (
         <Card>
-          <div className="text-center py-12">
-            <p className="text-gray-500">Loading form...</p>
+          <div className="flex justify-center py-12">
+            <LoadingSpinner size="lg" text="Loading form..." />
           </div>
         </Card>
       ) : (

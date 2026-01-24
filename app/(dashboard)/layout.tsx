@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/ui/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Navbar } from '@/components/layout/Navbar';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function DashboardLayout({
   children,
@@ -12,26 +13,22 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, initializing } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
+    // Only redirect after initialization complete and confirmed no user
+    if (!initializing && !loading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, loading, initializing, router]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+  // Show loading during initialization or explicit auth operations
+  if (loading || initializing) {
+    return <LoadingSpinner size="xl" text="Loading..." fullScreen />;
   }
 
+  // No user after initialization - redirect will happen via useEffect
   if (!user) {
     return null;
   }

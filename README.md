@@ -2,6 +2,19 @@
 
 A comprehensive web application to manage service appointments, staff availability, and customer queues with intelligent conflict detection and queue management.
 
+## � Demo Account
+
+Try the app instantly with our demo account:
+
+| Field | Value |
+|-------|-------|
+| **Email** | `demo@example.com` |
+| **Password** | `d#1aEdmO(` |
+
+> 💡 Click the **ℹ️ info icon** on the login page to view credentials and app features.
+> 
+> Or simply click **"Try Demo Account"** button to login automatically.
+
 ## 🌟 Features
 
 ### Authentication & User Management
@@ -41,6 +54,12 @@ A comprehensive web application to manage service appointments, staff availabili
 - ✅ Activity log with recent actions
 - ✅ Quick access to all features
 
+### Real-time Updates
+- ✅ Live appointment updates across all pages
+- ✅ Instant queue position changes
+- ✅ Real-time activity log
+- ✅ Supabase Realtime integration
+
 ## 🛠️ Tech Stack
 
 - **Framework**: Next.js 16 (App Router)
@@ -48,6 +67,7 @@ A comprehensive web application to manage service appointments, staff availabili
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
 - **Storage**: Supabase Storage (profile images)
+- **Realtime**: Supabase Realtime (live updates)
 - **Styling**: Tailwind CSS
 - **Animations**: Framer Motion
 - **Icons**: Lucide React
@@ -79,6 +99,7 @@ Follow the detailed guide in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) to:
 - Configure environment variables
 - Run the database schema
 - Set up storage bucket
+- Enable Realtime
 
 4. **Configure environment variables**
 
@@ -88,12 +109,19 @@ NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
-5. **Run the development server**
+5. **Create demo user in Supabase**
+
+Go to Supabase Dashboard → Authentication → Users → Add User:
+- Email: `demo@example.com`
+- Password: `d#1aEdmO(`
+- Check "Auto Confirm User"
+
+6. **Run the development server**
 ```bash
 npm run dev
 ```
 
-6. **Open the app**
+7. **Open the app**
 
 Navigate to [http://localhost:3000](http://localhost:3000)
 

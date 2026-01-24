@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import type { Staff, AvailabilityStatus } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
@@ -228,8 +229,8 @@ export default function StaffPage() {
 
       {loading ? (
         <Card>
-          <div className="text-center py-12">
-            <p className="text-gray-500">Loading staff members...</p>
+          <div className="flex justify-center py-12">
+            <LoadingSpinner size="lg" text="Loading staff members..." />
           </div>
         </Card>
       ) : staff.length === 0 ? (
