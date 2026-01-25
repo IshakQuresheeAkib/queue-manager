@@ -10,7 +10,7 @@ import { getUserProfile, updateUserProfile, uploadProfileImage } from '@/lib/sup
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
 import type { UserProfile } from '@/types';
 
 export default function ProfilePage() {
@@ -141,7 +141,7 @@ export default function ProfilePage() {
   };
 
   if (isLoading) {
-    return <LoadingSpinner size="xl" text="Loading profile..." fullScreen />;
+    return <ProfilePageSkeleton />;
   }
 
   return (

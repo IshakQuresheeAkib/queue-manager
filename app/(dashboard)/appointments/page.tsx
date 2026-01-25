@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonAppointmentCard } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/ToastContext';
 import type { AppointmentWithDetails, Staff } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
@@ -172,11 +172,11 @@ export default function AppointmentsPage() {
       {/* Appointments List */}
       <div className="grid grid-cols-1 gap-4">
         {loading ? (
-          <Card>
-            <div className="flex justify-center py-12">
-              <LoadingSpinner size="lg" text="Loading appointments..." />
-            </div>
-          </Card>
+          <>
+            <SkeletonAppointmentCard />
+            <SkeletonAppointmentCard />
+            <SkeletonAppointmentCard />
+          </>
         ) : filteredAppointments.length === 0 ? (
           <Card>
             <div className="text-center py-12">

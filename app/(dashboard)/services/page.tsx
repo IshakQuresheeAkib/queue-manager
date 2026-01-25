@@ -10,7 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Combobox } from '@/components/ui/Combobox';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonGridCard } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/ToastContext';
 import type { Service, ServiceDuration } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
@@ -200,11 +200,11 @@ export default function ServicesPage() {
       )}
 
       {loading ? (
-        <Card>
-          <div className="flex justify-center py-12">
-            <LoadingSpinner size="lg" text="Loading services..." />
-          </div>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <SkeletonGridCard />
+          <SkeletonGridCard />
+          <SkeletonGridCard />
+        </div>
       ) : services.length === 0 ? (
         <Card>
           <div className="text-center py-12">

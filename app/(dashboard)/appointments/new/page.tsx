@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { FormSkeleton } from '@/components/ui/PageSkeletons';
 import { useToast } from '@/components/ui/ToastContext';
 import type { Staff, Service, Appointment } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
@@ -270,11 +270,7 @@ export default function NewAppointmentPage() {
       )}
 
       {loading ? (
-        <Card>
-          <div className="flex justify-center py-12">
-            <LoadingSpinner size="lg" text="Loading form..." />
-          </div>
-        </Card>
+        <FormSkeleton fields={5} hasHeader={false} />
       ) : (
       <Card>
         <form onSubmit={handleSubmit} className="space-y-4">
