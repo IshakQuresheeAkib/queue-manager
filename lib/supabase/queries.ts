@@ -92,6 +92,53 @@ export async function getStaff(userId: string): Promise<Staff[]> {
   return data as Staff[];
 }
 
+// Get unique service types from staff for suggestions
+export async function getUniqueStaffTypes(userId: string): Promise<string[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('staff')
+    .select('service_type')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching staff types:', error);
+    return [];
+  }
+
+  // Extract unique types
+  const types = new Set(data?.map((s) => s.service_type) || []);
+  return Array.from(types).sort();
+}
+
+// Get unique required staff types from services for suggestions
+export async function getUniqueServiceStaffTypes(userId: string): Promise<string[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('services')
+    .select('required_staff_type')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching service staff types:', error);
+    return [];
+  }
+
+  // Extract unique types
+  const types = new Set(data?.map((s) => s.required_staff_type) || []);
+  return Array.from(types).sort();
+}
+
+// Get all unique staff/service types combined (for suggestions)
+export async function getAllUniqueTypes(userId: string): Promise<string[]> {
+  const [staffTypes, serviceTypes] = await Promise.all([
+    getUniqueStaffTypes(userId),
+    getUniqueServiceStaffTypes(userId),
+  ]);
+
+  const combined = new Set([...staffTypes, ...serviceTypes]);
+  return Array.from(combined).sort();
+}
+
 export async function addStaff(staff: Omit<Staff, 'id' | 'created_at' | 'updated_at'>): Promise<Staff | null> {
   const supabase = createClient();
   const { data, error } = await supabase

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { User, Mail, Phone, MapPin, Camera, Save, Loader2 } from 'lucide-react';
 import { useAuth } from '@/components/ui/AuthContext';
+import { useToast } from '@/components/ui/ToastContext';
 import { getUserProfile, updateUserProfile, uploadProfileImage } from '@/lib/supabase/queries';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -14,6 +15,7 @@ import type { UserProfile } from '@/types';
 
 export default function ProfilePage() {
   const { user, refreshProfile } = useAuth();
+  const toast = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -87,15 +89,19 @@ export default function ProfilePage() {
           setProfile(updatedProfile);
           await refreshProfile();
           setSuccessMessage('Profile image updated successfully!');
+          toast.success('Profile image updated!');
         } else {
           setErrorMessage('Failed to update profile image');
+          toast.error('Failed to update profile image');
         }
       } else {
         setErrorMessage('Failed to upload image');
+        toast.error('Failed to upload image');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
       setErrorMessage('Failed to upload image');
+      toast.error('Failed to upload image');
     } finally {
       setIsUploadingImage(false);
     }
@@ -120,12 +126,15 @@ export default function ProfilePage() {
         setProfile(updatedProfile);
         await refreshProfile();
         setSuccessMessage('Profile updated successfully!');
+        toast.success('Profile updated successfully!');
       } else {
         setErrorMessage('Failed to update profile');
+        toast.error('Failed to update profile');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
       setErrorMessage('Failed to update profile');
+      toast.error('Failed to update profile');
     } finally {
       setIsSaving(false);
     }

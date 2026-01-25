@@ -2,19 +2,22 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Briefcase, Edit2, Trash2 } from 'lucide-react';
-import { getServices, addService, updateService, deleteService, getAppointments, addActivityLog } from '@/lib/supabase/queries';
+import { getServices, addService, updateService, deleteService, getAppointments, addActivityLog, getAllUniqueTypes } from '@/lib/supabase/queries';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Combobox } from '@/components/ui/Combobox';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useToast } from '@/components/ui/ToastContext';
 import type { Service, ServiceDuration } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
 export default function ServicesPage() {
   const { user } = useAuth();
+  const toast = useToast();
 
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,8 +28,9 @@ export default function ServicesPage() {
   const [duration, setDuration] = useState<ServiceDuration>(30);
   const [requiredStaffType, setRequiredStaffType] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [staffTypeSuggestions, setStaffTypeSuggestions] = useState<string[]>([]);
 
-  const serviceTypes = ['Doctor', 'Consultant', 'Support Agent', 'Therapist', 'Specialist'];
+  const defaultTypes = ['Doctor', 'Consultant', 'Support Agent', 'Therapist', 'Specialist'];
   const durations: ServiceDuration[] = [15, 30, 60];
 
   // Load services data from Supabase
@@ -37,8 +41,14 @@ export default function ServicesPage() {
       try {
         setLoading(true);
         setError(null);
-        const data = await getServices(user.id);
+        const [data, existingTypes] = await Promise.all([
+          getServices(user.id),
+          getAllUniqueTypes(user.id),
+        ]);
         setServices(data);
+        // Combine existing types with defaults, removing duplicates
+        const combined = new Set([...existingTypes, ...defaultTypes]);
+        setStaffTypeSuggestions(Array.from(combined).sort());
       } catch (err) {
         console.error('Error loading services:', err);
         setError('Failed to load services');
@@ -75,7 +85,7 @@ export default function ServicesPage() {
     if (!user) return;
 
     if (!name.trim() || !requiredStaffType) {
-      alert('Please fill all required fields');
+      toast.warning('Please fill all required fields');
       return;
     }
 
@@ -98,6 +108,7 @@ export default function ServicesPage() {
             appointment_id: null,
             description: `Service "${name}" updated`,
           });
+          toast.success(`Service "${name}" updated`);
         }
       } else {
         const created = await addService({
@@ -115,6 +126,7 @@ export default function ServicesPage() {
             appointment_id: null,
             description: `Service "${name}" created`,
           });
+          toast.success(`Service "${name}" created`);
         }
       }
 
@@ -122,14 +134,22 @@ export default function ServicesPage() {
     } catch (err) {
       console.error('Error saving service:', err);
       setError('Failed to save service');
+      toast.error('Failed to save service');
     } finally {
       setSubmitting(false);
     }
-  }, [user, editingService, name, duration, requiredStaffType, closeModal]);
+  }, [user, editingService, name, duration, requiredStaffType, closeModal, toast]);
 
   const handleDelete = useCallback(async (id: string): Promise<void> => {
     if (!user) return;
-    if (!confirm('Are you sure you want to delete this service?')) return;
+    const confirmed = await toast.confirm({
+      title: 'Delete Service',
+      message: 'Are you sure you want to delete this service? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       setError(null);
@@ -137,7 +157,7 @@ export default function ServicesPage() {
       const hasAppointments = appointments.some((a) => a.service_id === id);
 
       if (hasAppointments) {
-        alert('Cannot delete service with existing appointments. Please delete or reassign appointments first.');
+        toast.warning('Cannot delete service with existing appointments. Please delete or reassign appointments first.');
         return;
       }
 
@@ -150,12 +170,14 @@ export default function ServicesPage() {
           description: 'Service deleted',
           appointment_id: null,
         });
+        toast.success('Service deleted');
       }
     } catch (err) {
       console.error('Error deleting service:', err);
       setError('Failed to delete service');
+      toast.error('Failed to delete service');
     }
-  }, [user]);
+  }, [user, toast]);
 
   return (
     <div className="space-y-6">
@@ -237,12 +259,12 @@ export default function ServicesPage() {
             options={durations.map((d) => ({ value: d.toString(), label: `${d} minutes` }))}
             required
           />
-          <Select
+          <Combobox
             label="Required Staff Type"
             value={requiredStaffType}
             onChange={setRequiredStaffType}
-            options={serviceTypes.map((type) => ({ value: type, label: type }))}
-            placeholder="Select staff type"
+            suggestions={staffTypeSuggestions}
+            placeholder="Type or select any staff type from below..."
             required
           />
           <div className="flex gap-3">

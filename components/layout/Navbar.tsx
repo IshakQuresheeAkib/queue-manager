@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Calendar, LogOut, Menu, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '../ui/AuthContext';
+import { useToast } from '../ui/ToastContext';
 import { useRouter } from 'next/navigation';
 
 interface NavbarProps {
@@ -13,10 +14,12 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
+  const toast = useToast();
   const router = useRouter();
 
   const handleLogout = async () => {
     await logout();
+    toast.success('Logged out successfully');
     router.push('/login');
   };
 

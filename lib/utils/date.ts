@@ -1,14 +1,4 @@
-/**
- * Date utilities for handling local timezone correctly.
- * Supabase stores dates as strings (DATE type), so we need to ensure
- * we're comparing with local dates, not UTC dates.
- */
 
-/**
- * Get today's date in YYYY-MM-DD format using local timezone.
- * This is important because new Date().toISOString() returns UTC date,
- * which can be a day behind in timezones ahead of UTC (e.g., Bangladesh UTC+6).
- */
 export function getLocalDateString(date: Date = new Date()): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -16,9 +6,6 @@ export function getLocalDateString(date: Date = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
-/**
- * Get current time in HH:MM:SS format using local timezone.
- */
 export function getLocalTimeString(date: Date = new Date()): string {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -32,4 +19,19 @@ export function getLocalTimeString(date: Date = new Date()): string {
  */
 export function getTodayString(): string {
   return getLocalDateString(new Date());
+}
+
+export function formatTime12Hour(time24: string): string {
+  if (!time24) return '';
+  
+  const [hoursStr, minutesStr] = time24.split(':');
+  const hours = parseInt(hoursStr, 10);
+  const minutes = minutesStr || '00';
+  
+  if (isNaN(hours)) return time24;
+  
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const hours12 = hours % 12 || 12;
+  
+  return `${hours12}:${minutes} ${period}`;
 }

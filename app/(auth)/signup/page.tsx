@@ -3,6 +3,7 @@
 import { useAuth } from "@/components/ui/AuthContext";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useToast } from "@/components/ui/ToastContext";
 import { Lock, Mail, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { motion } from 'framer-motion';
@@ -12,6 +13,7 @@ import { useRouter } from "next/navigation";
 
 const SignupPage: React.FC = () => {
   const { signup } = useAuth();
+  const toast = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -25,20 +27,25 @@ const SignupPage: React.FC = () => {
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
     setLoading(true);
     try {
       await signup(email, password);
+      toast.success('Account created successfully!');
       router.push('dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Signup failed');
+      const message = err instanceof Error ? err.message : 'Signup failed';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
