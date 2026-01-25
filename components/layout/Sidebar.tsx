@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Home, Calendar, List, Users, Briefcase } from 'lucide-react';
+import { Home, Calendar, List, Users, Briefcase, UserCircle } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -20,6 +20,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { id: 'queue', path: '/queue', icon: <List size={20} />, label: 'Queue' },
     { id: 'staff', path: '/staff', icon: <Users size={20} />, label: 'Staff' },
     { id: 'services', path: '/services', icon: <Briefcase size={20} />, label: 'Services' },
+    { id: 'profile', path: '/profile', icon: <UserCircle size={20} />, label: 'Profile' },
   ];
 
   const handleNavigate = (path: string): void => {

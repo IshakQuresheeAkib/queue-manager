@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Calendar, CheckCircle, Clock, List, User, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { StorageManager } from '@/lib/storage/StorageManager';
+import { getAppointments, getStaff, getActivityLogs } from '@/lib/supabase/queries';
+import { useAppointmentsRealtime, useStaffRealtime, useActivityLogsRealtime } from '@/lib/supabase/realtime';
+import { getTodayString } from '@/lib/utils/date';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import type { Appointment, Staff, ActivityLog } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
@@ -15,42 +18,42 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
   
-  // Create storage instance only once using useMemo
-  const storage = useMemo(() => user ? new StorageManager(user.email) : null, [user]);
-
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // FIX: Move data loading to a separate function and call it properly
   useEffect(() => {
-    if (!storage) return;
+    if (!user) return;
 
-    const loadData = () => {
-      const loadedAppointments = storage.getAppointments();
-      const loadedStaff = storage.getStaff();
-      const loadedLogs = storage.getActivityLogs().slice(0, 10);
-      
-      setAppointments(loadedAppointments);
-      setStaff(loadedStaff);
-      setActivityLogs(loadedLogs);
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const [appointmentsData, staffData, logsData] = await Promise.all([
+          getAppointments(user.id),
+          getStaff(user.id),
+          getActivityLogs(user.id, 10)
+        ]);
+        
+        setAppointments(appointmentsData);
+        setStaff(staffData);
+        setActivityLogs(logsData);
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadData();
+  }, [user]);
 
-    // Optional: Add event listener for storage changes if you want real-time updates
-    const handleStorageChange = () => {
-      loadData();
-    };
+  // Real-time subscriptions for live updates
+  useAppointmentsRealtime(user?.id ?? '', setAppointments);
+  useStaffRealtime(user?.id ?? '', setStaff);
+  useActivityLogsRealtime(user?.id ?? '', setActivityLogs, 10);
 
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [storage]);
-
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayString();
   const todayAppointments = appointments.filter(
     (a) => a.appointment_date === today && a.status !== 'Cancelled'
   );
@@ -58,9 +61,13 @@ export default function DashboardPage() {
   const pendingToday = todayAppointments.filter((a) => a.status === 'Scheduled').length;
   const queueCount = appointments.filter((a) => a.in_queue).length;
 
-  const getStaffLoad = (staffId: string): number => {
+  const getStaffLoad = useCallback((staffId: string): number => {
     return todayAppointments.filter((a) => a.staff_id === staffId).length;
-  };
+  }, [todayAppointments]);
+
+  if (isLoading) {
+    return <LoadingSpinner size="xl" text="Loading dashboard..." fullScreen />;
+  }
 
   return (
     <div className="space-y-6">

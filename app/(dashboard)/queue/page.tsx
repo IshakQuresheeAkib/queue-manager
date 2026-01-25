@@ -1,116 +1,150 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
 import { List, Calendar, Clock, Briefcase, ArrowRight } from 'lucide-react';
-import { StorageManager } from '@/lib/storage/StorageManager';
+import { getAppointmentsWithDetails, getStaff, getServices, updateAppointment, addActivityLog } from '@/lib/supabase/queries';
+import { useRealtimeSubscription } from '@/lib/supabase/realtime';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import type { AppointmentWithDetails, Staff, Service } from '@/types';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import type { AppointmentWithDetails, Staff, Service, Appointment } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
 export default function QueuePage() {
-  const router = useRouter();
   const { user } = useAuth();
-  const storage = useMemo(() => (user ? new StorageManager(user.email) : null), [user]);
 
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [queuedAppointments, setQueuedAppointments] = useState<AppointmentWithDetails[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load all data with useMemo
-  const { queuedAppointments, staff, services } = useMemo(() => {
-    if (!storage) {
-      return { queuedAppointments: [], staff: [], services: [] };
-    }
+  // Load all data from Supabase
+  useEffect(() => {
+    if (!user) return;
 
-    const appts = storage.getAppointments();
-    const servicesList = storage.getServices();
-    const staffList = storage.getStaff();
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [appointmentsData, staffData, servicesData] = await Promise.all([
+          getAppointmentsWithDetails(user.id),
+          getStaff(user.id),
+          getServices(user.id),
+        ]);
 
-    const queued = appts
+        const queued = appointmentsData
+          .filter((a) => a.in_queue)
+          .sort((a, b) => (a.queue_position || 0) - (b.queue_position || 0));
+
+        setQueuedAppointments(queued);
+        setStaff(staffData);
+        setServices(servicesData);
+      } catch (err) {
+        console.error('Error loading data:', err);
+        setError('Failed to load queue');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
+  // Real-time subscription for queue updates
+  const handleAppointmentChange = useCallback(async () => {
+    if (!user) return;
+    const appointmentsData = await getAppointmentsWithDetails(user.id);
+    const queued = appointmentsData
       .filter((a) => a.in_queue)
-      .sort((a, b) => (a.queue_position || 0) - (b.queue_position || 0))
-      .map((a) => {
-        const service = servicesList.find((s) => s.id === a.service_id);
-        return {
-          ...a,
-          service:
-            service ||
-            ({
-              id: '',
-              user_id: '',
-              name: 'Unknown Service',
-              duration: 30,
-              required_staff_type: '',
-              created_at: '',
-              updated_at: '',
-            } as Service),
-          staff: null,
-        };
+      .sort((a, b) => (a.queue_position || 0) - (b.queue_position || 0));
+    setQueuedAppointments(queued);
+  }, [user]);
+
+  useRealtimeSubscription<Appointment>({
+    table: 'appointments',
+    userId: user?.id ?? '',
+    onInsert: handleAppointmentChange,
+    onUpdate: handleAppointmentChange,
+    onDelete: handleAppointmentChange,
+  });
+
+  const assignFromQueue = useCallback(async (appointmentId: string): Promise<void> => {
+    if (!user) return;
+
+    try {
+      setError(null);
+      const appointment = queuedAppointments.find((a) => a.id === appointmentId);
+
+      if (!appointment) return;
+
+      const service = services.find((s) => s.id === appointment.service_id);
+      if (!service) return;
+
+      const eligibleStaff = staff.filter(
+        (s) => s.service_type === service.required_staff_type && s.availability_status === 'Available'
+      );
+
+      const appointmentDate = appointment.appointment_date;
+      let assignedStaff: Staff | null = null;
+
+      // Get all appointments for the appointment's date (not today)
+      const allAppointments = await getAppointmentsWithDetails(user.id);
+      const dateAppointments = allAppointments.filter(
+        (a) => a.appointment_date === appointmentDate && a.status !== 'Cancelled'
+      );
+
+      for (const staffMember of eligibleStaff) {
+        const load = dateAppointments.filter((a) => a.staff_id === staffMember.id).length;
+
+        if (load < staffMember.daily_capacity) {
+          assignedStaff = staffMember;
+          break;
+        }
+      }
+
+      if (!assignedStaff) {
+        alert('No available staff members to assign this appointment.');
+        return;
+      }
+
+      // Update the appointment
+      await updateAppointment(appointment.id, {
+        staff_id: assignedStaff.id,
+        in_queue: false,
+        queue_position: null,
       });
 
-    return {
-      queuedAppointments: queued,
-      staff: staffList,
-      services: servicesList,
-    };
-  }, [storage, refreshKey]);
+      // Update queue positions for remaining appointments
+      const remainingQueued = queuedAppointments
+        .filter((a) => a.id !== appointmentId)
+        .sort((a, b) => (a.queue_position || 0) - (b.queue_position || 0));
 
-  const assignFromQueue = useCallback((appointmentId: string): void => {
-    if (!storage) return;
-
-    const appointments = storage.getAppointments();
-    const appointment = appointments.find((a) => a.id === appointmentId);
-
-    if (!appointment) return;
-
-    const service = services.find((s) => s.id === appointment.service_id);
-    if (!service) return;
-
-    const eligibleStaff = staff.filter(
-      (s) => s.service_type === service.required_staff_type && s.availability_status === 'Available'
-    );
-
-    const today = new Date().toISOString().split('T')[0];
-    let assignedStaff: Staff | null = null;
-
-    for (const staffMember of eligibleStaff) {
-      const load = appointments.filter(
-        (a) => a.staff_id === staffMember.id && a.appointment_date === today && a.status !== 'Cancelled'
-      ).length;
-
-      if (load < staffMember.daily_capacity) {
-        assignedStaff = staffMember;
-        break;
+      for (let i = 0; i < remainingQueued.length; i++) {
+        await updateAppointment(remainingQueued[i].id, {
+          queue_position: i + 1,
+        });
       }
+
+      await addActivityLog({
+        user_id: user.id,
+        action_type: 'queue_assigned',
+        description: `Appointment for "${appointment.customer_name}" assigned to ${assignedStaff.name} from queue`,
+        appointment_id: null,
+      });
+
+      // Refresh data
+      const appointmentsData = await getAppointmentsWithDetails(user.id);
+      const queued = appointmentsData
+        .filter((a) => a.in_queue)
+        .sort((a, b) => (a.queue_position || 0) - (b.queue_position || 0));
+      setQueuedAppointments(queued);
+    } catch (err) {
+      console.error('Error assigning from queue:', err);
+      setError('Failed to assign appointment from queue');
     }
-
-    if (!assignedStaff) {
-      alert('No available staff members to assign this appointment.');
-      return;
-    }
-
-    appointment.staff_id = assignedStaff.id;
-    appointment.in_queue = false;
-    appointment.queue_position = null;
-
-    const remainingQueued = appointments
-      .filter((a) => a.in_queue && a.id !== appointmentId)
-      .sort((a, b) => (a.queue_position || 0) - (b.queue_position || 0));
-
-    remainingQueued.forEach((a, index) => {
-      a.queue_position = index + 1;
-    });
-
-    storage.setAppointments(appointments);
-    storage.addActivityLog({
-      action_type: 'queue_assigned',
-      description: `Appointment for "${appointment.customer_name}" assigned to ${assignedStaff.name} from queue`,
-      appointment_id: null,
-    });
-
-    setRefreshKey((prev) => prev + 1); // Trigger refresh
-  }, [storage, staff, services]);
+  }, [user, queuedAppointments, staff, services]);
 
   return (
     <div className="space-y-6">
@@ -119,7 +153,21 @@ export default function QueuePage() {
         <p className="text-gray-600 mt-1">Manage appointments waiting for staff assignment</p>
       </div>
 
-      {queuedAppointments.length === 0 ? (
+      {error && (
+        <Card>
+          <div className="text-center py-4 text-red-600">
+            <p>{error}</p>
+          </div>
+        </Card>
+      )}
+
+      {loading ? (
+        <Card>
+          <div className="flex justify-center py-12">
+            <LoadingSpinner size="lg" text="Loading queue..." />
+          </div>
+        </Card>
+      ) : queuedAppointments.length === 0 ? (
         <Card>
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">

@@ -2,6 +2,23 @@ export type AvailabilityStatus = 'Available' | 'On Leave';
 export type AppointmentStatus = 'Scheduled' | 'Completed' | 'Cancelled' | 'No-Show';
 export type ServiceDuration = 15 | 30 | 60;
 
+export interface UserProfile {
+  id: string;
+  user_id: string;
+  name: string | null;
+  image_url: string | null;
+  address: string | null;
+  phone: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  profile: UserProfile | null;
+}
+
 export interface Staff {
   id: string;
   user_id: string;

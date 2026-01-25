@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { StorageManager } from '@/lib/storage/StorageManager';
+import { getServices, getStaff, getAppointments, updateAppointment, addActivityLog } from '@/lib/supabase/queries';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
-import type { Staff, Service, AppointmentStatus } from '@/types';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import type { Staff, Service, Appointment, AppointmentStatus } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
 export default function EditAppointmentPage() {
@@ -18,35 +19,65 @@ export default function EditAppointmentPage() {
   const params = useParams();
   const appointmentId = params.id as string;
   const { user } = useAuth();
-  const storage = useMemo(() => (user ? new StorageManager(user.email) : null), [user]);
 
-  // Load initial data with useMemo
-  const { services, staff, initialAppointment } = useMemo(() => {
-    if (!storage) {
-      return { services: [], staff: [], initialAppointment: null };
-    }
-
-    const servicesList = storage.getServices();
-    const staffList = storage.getStaff();
-    const apt = storage.getAppointments().find((a) => a.id === appointmentId);
-
-    return {
-      services: servicesList,
-      staff: staffList,
-      initialAppointment: apt || null,
-    };
-  }, [storage, appointmentId]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Form state
-  const [customerName, setCustomerName] = useState(initialAppointment?.customer_name || '');
-  const [serviceId, setServiceId] = useState(initialAppointment?.service_id || '');
-  const [staffId, setStaffId] = useState(initialAppointment?.staff_id || '');
-  const [appointmentDate, setAppointmentDate] = useState(initialAppointment?.appointment_date || '');
-  const [appointmentTime, setAppointmentTime] = useState(initialAppointment?.appointment_time || '');
-  const [status, setStatus] = useState<AppointmentStatus>(initialAppointment?.status || 'Scheduled');
+  const [customerName, setCustomerName] = useState('');
+  const [serviceId, setServiceId] = useState('');
+  const [staffId, setStaffId] = useState('');
+  const [appointmentDate, setAppointmentDate] = useState('');
+  const [appointmentTime, setAppointmentTime] = useState('');
+  const [status, setStatus] = useState<AppointmentStatus>('Scheduled');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  
+  // Load data from Supabase
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [servicesData, staffData, appointmentsData] = await Promise.all([
+          getServices(user.id),
+          getStaff(user.id),
+          getAppointments(user.id),
+        ]);
+
+        setServices(servicesData);
+        setStaff(staffData);
+        setAppointments(appointmentsData);
+
+        const existingAppointment = appointmentsData.find((a) => a.id === appointmentId);
+        if (existingAppointment) {
+          setCustomerName(existingAppointment.customer_name);
+          setServiceId(existingAppointment.service_id);
+          setStaffId(existingAppointment.staff_id || '');
+          setAppointmentDate(existingAppointment.appointment_date);
+          setAppointmentTime(existingAppointment.appointment_time);
+          setStatus(existingAppointment.status);
+        }
+      } catch (err) {
+        console.error('Error loading data:', err);
+        setError('Failed to load appointment data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user, appointmentId]);
+
+  const currentAppointment = useMemo(
+    () => appointments.find((a) => a.id === appointmentId),
+    [appointments, appointmentId]
+  );
 
   // Calculate eligible staff using useMemo
   const eligibleStaff = useMemo(() => {
@@ -58,7 +89,7 @@ export default function EditAppointmentPage() {
 
   // Calculate conflict warning using useMemo
   const conflictWarning = useMemo(() => {
-    if (!staffId || !appointmentDate || !appointmentTime || !serviceId || !storage) {
+    if (!staffId || !appointmentDate || !appointmentTime || !serviceId) {
       return '';
     }
 
@@ -69,9 +100,8 @@ export default function EditAppointmentPage() {
     const startTime = hours * 60 + minutes;
     const endTime = startTime + service.duration;
 
-    const appointments = storage.getAppointments();
     const hasConflict = appointments.some((a) => {
-      if (a.id === appointmentId) return false; // Exclude current appointment
+      if (a.id === appointmentId) return false;
       if (a.staff_id !== staffId) return false;
       if (a.appointment_date !== appointmentDate) return false;
       if (a.status === 'Cancelled') return false;
@@ -87,30 +117,27 @@ export default function EditAppointmentPage() {
     });
 
     return hasConflict ? 'This staff member already has an appointment at this time.' : '';
-  }, [staffId, appointmentDate, appointmentTime, serviceId, services, storage, appointmentId]);
-
-  
+  }, [staffId, appointmentDate, appointmentTime, serviceId, services, appointments, appointmentId]);
 
   // Calculate staff load
   const getStaffLoad = useCallback(
     (staffMemberId: string): number => {
-      if (!appointmentDate || !storage) return 0;
-      return storage
-        .getAppointments()
+      if (!appointmentDate) return 0;
+      return appointments
         .filter(
           (a) =>
-            a.id !== appointmentId && // Exclude current appointment
+            a.id !== appointmentId &&
             a.staff_id === staffMemberId &&
             a.appointment_date === appointmentDate &&
             a.status !== 'Cancelled'
         ).length;
     },
-    [appointmentDate, storage, appointmentId]
+    [appointmentDate, appointments, appointmentId]
   );
 
-  const handleSubmit = (e: React.FormEvent): void => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    if (!storage) return;
+    if (!user) return;
 
     const newErrors: Record<string, string> = {};
 
@@ -129,31 +156,44 @@ export default function EditAppointmentPage() {
       return;
     }
 
-    const appointments = storage.getAppointments();
-    const appointment = appointments.find((a) => a.id === appointmentId);
+    try {
+      setSubmitting(true);
+      setError(null);
 
-    if (appointment) {
-      appointment.customer_name = customerName.trim();
-      appointment.service_id = serviceId;
-      appointment.staff_id = staffId || null;
-      appointment.appointment_date = appointmentDate;
-      appointment.appointment_time = appointmentTime;
-      appointment.status = status;
-      appointment.updated_at = new Date().toISOString();
-
-      storage.setAppointments(appointments);
-      storage.addActivityLog({
-        action_type: 'appointment_updated',
-        description: `Appointment for "${customerName}" updated`,
-        appointment_id: null,
+      const updated = await updateAppointment(appointmentId, {
+        customer_name: customerName.trim(),
+        service_id: serviceId,
+        staff_id: staffId || null,
+        appointment_date: appointmentDate,
+        appointment_time: appointmentTime,
+        status,
       });
 
-      router.push('/appointments');
+      if (updated) {
+        await addActivityLog({
+          user_id: user.id,
+          action_type: 'appointment_updated',
+          description: `Appointment for "${customerName}" updated`,
+          appointment_id: null,
+        });
+
+        router.push('/appointments');
+      } else {
+        setError('Failed to update appointment');
+      }
+    } catch (err) {
+      console.error('Error updating appointment:', err);
+      setError('Failed to update appointment');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // Redirect if appointment not found
-  if (!initialAppointment) {
+  if (loading) {
+    return <LoadingSpinner size="xl" text="Loading appointment..." fullScreen />;
+  }
+
+  if (!currentAppointment) {
     router.push('/appointments');
     return null;
   }
@@ -164,6 +204,14 @@ export default function EditAppointmentPage() {
         <h1 className="text-3xl font-bold text-gray-900">Edit Appointment</h1>
         <p className="text-gray-600 mt-1">Update appointment details</p>
       </div>
+
+      {error && (
+        <Card>
+          <div className="text-center py-4 text-red-600">
+            <p>{error}</p>
+          </div>
+        </Card>
+      )}
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -238,7 +286,7 @@ export default function EditAppointmentPage() {
                           : 'border-gray-300 hover:border-gray-400'
                       }`}
                     >
-                      <p className="font-medium">Unassign Staff</p>
+                      <p className="font-medium text-gray-700">Unassign Staff</p>
                       <p className="text-sm text-gray-600">Remove staff assignment</p>
                     </div>
                     {eligibleStaff.map((s) => {
@@ -260,11 +308,11 @@ export default function EditAppointmentPage() {
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium">{s.name}</p>
+                              <p className="font-medium text-gray-700">{s.name}</p>
                               <p className="text-sm text-gray-600">{s.service_type}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-sm">
+                              <span className="text-sm text-gray-500">
                                 {load} / {s.daily_capacity} today
                               </span>
                               {isOnLeave ? (
@@ -299,7 +347,7 @@ export default function EditAppointmentPage() {
               <div className="flex items-start gap-2">
                 <AlertCircle size={20} className="mt-0.5" />
                 <div>
-                  <p className="font-medium">{conflictWarning}</p>
+                  <p className="font-medium text-gray-700">{conflictWarning}</p>
                   <p className="text-sm mt-1">Please choose another staff member or change the time.</p>
                 </div>
               </div>
@@ -307,8 +355,8 @@ export default function EditAppointmentPage() {
           )}
 
           <div className="flex items-center gap-3 pt-4">
-            <Button type="submit" variant="primary">
-              Update Appointment
+            <Button type="submit" variant="primary" disabled={submitting}>
+              {submitting ? 'Updating...' : 'Update Appointment'}
             </Button>
             <Button type="button" variant="secondary" onClick={() => router.push('/appointments')}>
               Cancel

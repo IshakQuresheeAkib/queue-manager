@@ -1,13 +1,20 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import type { User } from '@/types';
+import { getUserProfile } from '@/lib/supabase/queries';
+import { DEMO_EMAIL, DEMO_PASSWORD } from '@/lib/constants/demo';
 
 interface AuthContextType {
-  user: { email: string } | null;
+  user: User | null;
+  loading: boolean;
+  initializing: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   demoLogin: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -15,79 +22,140 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<{ email: string } | null>(() => {
-    if (typeof window !== 'undefined') {
-      const savedUser = localStorage.getItem('app_user');
-      if (savedUser) {
-        try {
-          return JSON.parse(savedUser);
-        } catch (e) {
-          console.error("Failed to parse user during init", e);
-          return null;
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
+  const supabase = useMemo(() => createClient(), []);
+
+  const refreshProfile = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    const userId = user.id;
+    const profile = await getUserProfile(userId);
+    // Only update if user hasn't changed during async operation
+    setUser(prev => prev?.id === userId ? { ...prev, profile } : prev);
+  }, [user]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    // Use onAuthStateChange as primary - it handles INITIAL_SESSION event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+        
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email ?? '',
+            profile: null,
+          });
+          setInitializing(false);
+          
+          // Load profile in background with race condition protection
+          const userId = session.user.id;
+          getUserProfile(userId)
+            .then(profile => {
+              if (mounted) {
+                // Only update if user hasn't changed during async operation
+                setUser(prev => prev?.id === userId ? { ...prev, profile } : prev);
+              }
+            })
+            .catch(error => console.error('Profile load failed:', error));
+        } else {
+          setUser(null);
+          setInitializing(false);
         }
       }
-    }
-    // 2. Default to null for Server and if no user is found
-    return null;
-  });
-
-  const signup = async (email: string, password: string): Promise<void> => {
-    if (typeof window === 'undefined') return;
-
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const users = JSON.parse(localStorage.getItem('app_users') || '[]');
-
-    if (users.find((u: { email: string }) => u.email === email)) {
-      throw new Error('User already exists');
-    }
-
-    users.push({ email, password });
-    localStorage.setItem('app_users', JSON.stringify(users));
-
-    const newUser = { email };
-    setUser(newUser);
-    localStorage.setItem('app_user', JSON.stringify(newUser));
-  };
-
-  const login = async (email: string, password: string): Promise<void> => {
-    if (typeof window === 'undefined') return;
-
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const users = JSON.parse(localStorage.getItem('app_users') || '[]');
-    const foundUser = users.find(
-      (u: { email: string; password: string }) =>
-        u.email === email && u.password === password
     );
 
-    if (!foundUser) {
-      throw new Error('Invalid credentials');
+    // Fallback timeout in case onAuthStateChange doesn't fire (defensive)
+    const fallbackTimeout = setTimeout(() => {
+      if (mounted) {
+        setInitializing(false);
+      }
+    }, 3000);
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+      clearTimeout(fallbackTimeout);
+    };
+  }, [supabase]);
+
+  const signup = useCallback(async (email: string, password: string): Promise<void> => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      // onAuthStateChange will handle setting user
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  const login = useCallback(async (email: string, password: string): Promise<void> => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      // onAuthStateChange will handle setting user
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  const demoLogin = useCallback(async (): Promise<void> => {
+    // Try login first (most common case)
+    try {
+      await login(DEMO_EMAIL, DEMO_PASSWORD);
+      return;
+    } catch {
+      // Login failed, try signup
     }
 
-    const newUser = { email };
-    setUser(newUser);
-    localStorage.setItem('app_user', JSON.stringify(newUser));
-  };
+    // If login fails, try creating the account
+    try {
+      await signup(DEMO_EMAIL, DEMO_PASSWORD);
+      return;
+    } catch {
+      // Signup failed, try login one more time
+    }
 
-  const demoLogin = async (): Promise<void> => {
-    if (typeof window === 'undefined') return;
+    // Final attempt - login again (in case signup succeeded but returned error)
+    await login(DEMO_EMAIL, DEMO_PASSWORD);
+  }, [login, signup]);
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const demoUser = { email: 'demo@example.com' };
+  const logout = useCallback(async (): Promise<void> => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
 
-    setUser(demoUser);
-    localStorage.setItem('app_user', JSON.stringify(demoUser));
-  };
-
-  const logout = (): void => {
-    if (typeof window === 'undefined') return;
-    
-    setUser(null);
-    localStorage.removeItem('app_user');
-  };
+  const contextValue = useMemo(() => ({
+    user,
+    loading,
+    initializing,
+    login,
+    signup,
+    logout,
+    demoLogin,
+    refreshProfile,
+  }), [user, loading, initializing, login, signup, logout, demoLogin, refreshProfile]);
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, demoLogin }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

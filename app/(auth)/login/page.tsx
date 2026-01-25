@@ -7,6 +7,7 @@ import { Calendar, Mail, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
+import { DemoInfo } from '@/components/ui/DemoInfo';
 import { useAuth } from '@/components/ui/AuthContext';
 
 export default function LoginPage() {
@@ -45,7 +46,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4 relative">
+      <div className="absolute top-4 right-4">
+        <DemoInfo />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

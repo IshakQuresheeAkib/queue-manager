@@ -1,92 +1,101 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Calendar, Clock, Briefcase, User, Edit2, Trash2, CheckCircle, XCircle } from 'lucide-react';
-import { StorageManager } from '@/lib/storage/StorageManager';
+import { getAppointmentsWithDetails, deleteAppointment, updateAppointment, getStaff, addActivityLog } from '@/lib/supabase/queries';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import type { AppointmentWithDetails, Staff, Service } from '@/types';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import type { AppointmentWithDetails, Staff } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
 export default function AppointmentsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const storage = useMemo(() => (user ? new StorageManager(user.email) : null), [user]);
 
+  const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filterDate, setFilterDate] = useState('');
   const [filterStaff, setFilterStaff] = useState('');
-  const [refreshKey, setRefreshKey] = useState(0); // Force refresh trigger
 
-  // Load data with useMemo instead of useEffect
-  const { appointments, staff } = useMemo(() => {
-    if (!storage) {
-      return { appointments: [], staff: [] };
-    }
+  // Load data from Supabase
+  useEffect(() => {
+    if (!user) return;
 
-    const appts = storage.getAppointments();
-    const services = storage.getServices();
-    const staffList = storage.getStaff();
-
-    const appointmentsWithDetails: AppointmentWithDetails[] = appts.map((a) => {
-      const service = services.find((s) => s.id === a.service_id);
-      const staffMember = a.staff_id ? staffList.find((s) => s.id === a.staff_id) : null;
-      return {
-        ...a,
-        service:
-          service ||
-          ({
-            id: '',
-            user_id: '',
-            name: 'Unknown Service',
-            duration: 30,
-            required_staff_type: '',
-            created_at: '',
-            updated_at: '',
-          } as Service),
-        staff: staffMember || null,
-      };
-    });
-
-    return {
-      appointments: appointmentsWithDetails,
-      staff: staffList,
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [appointmentsData, staffData] = await Promise.all([
+          getAppointmentsWithDetails(user.id),
+          getStaff(user.id),
+        ]);
+        setAppointments(appointmentsData);
+        setStaff(staffData);
+      } catch (err) {
+        console.error('Error loading data:', err);
+        setError('Failed to load appointments');
+      } finally {
+        setLoading(false);
+      }
     };
-  }, [storage, refreshKey]); // Add refreshKey to force recalculation
 
-  const handleDelete = useCallback((id: string): void => {
-    if (!storage) return;
+    fetchData();
+  }, [user]);
+
+  const handleDelete = useCallback(async (id: string): Promise<void> => {
+    if (!user) return;
     if (!confirm('Are you sure you want to delete this appointment?')) return;
 
-    const appts = storage.getAppointments().filter((a) => a.id !== id);
-    storage.setAppointments(appts);
-    storage.addActivityLog({
-      action_type: 'appointment_deleted',
-      appointment_id: null,
-      description: 'Appointment deleted',
-    });
-    setRefreshKey((prev) => prev + 1); // Trigger refresh
-  }, [storage]);
-
-  const handleStatusChange = useCallback((id: string, status: 'Completed' | 'Cancelled' | 'No-Show'): void => {
-    if (!storage) return;
-
-    const appts = storage.getAppointments();
-    const appointment = appts.find((a) => a.id === id);
-    if (appointment) {
-      appointment.status = status;
-      storage.setAppointments(appts);
-      storage.addActivityLog({
-        action_type: 'appointment_status_updated',
-        appointment_id: null,
-        description: `Appointment for "${appointment.customer_name}" marked as ${status}`,
-      });
-      setRefreshKey((prev) => prev + 1); // Trigger refresh
+    try {
+      setError(null);
+      const success = await deleteAppointment(id);
+      if (success) {
+        setAppointments((prev) => prev.filter((a) => a.id !== id));
+        await addActivityLog({
+          user_id: user.id,
+          action_type: 'appointment_deleted',
+          appointment_id: null,
+          description: 'Appointment deleted',
+        });
+      }
+    } catch (err) {
+      console.error('Error deleting appointment:', err);
+      setError('Failed to delete appointment');
     }
-  }, [storage]);
+  }, [user]);
+
+  const handleStatusChange = useCallback(async (id: string, status: 'Completed' | 'Cancelled' | 'No-Show'): Promise<void> => {
+    if (!user) return;
+
+    try {
+      setError(null);
+      const appointment = appointments.find((a) => a.id === id);
+      if (appointment) {
+        const updated = await updateAppointment(id, { status });
+        if (updated) {
+          setAppointments((prev) =>
+            prev.map((a) => (a.id === id ? { ...a, status } : a))
+          );
+          await addActivityLog({
+            user_id: user.id,
+            action_type: 'appointment_status_updated',
+            appointment_id: null,
+            description: `Appointment for "${appointment.customer_name}" marked as ${status}`,
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error updating appointment status:', err);
+      setError('Failed to update appointment status');
+    }
+  }, [user, appointments]);
 
   // Filter and sort appointments using useMemo
   const filteredAppointments = useMemo(() => {
@@ -114,10 +123,18 @@ export default function AppointmentsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
           <p className="text-gray-600 mt-1">Manage all appointments</p>
         </div>
-        <Button onClick={() => router.push('/appointments/new')} icon={<Plus size={20} />}>
+        <Button onClick={() => router.push('/appointments/new')} icon={<Plus size={20} />} disabled={loading}>
           New Appointment
         </Button>
       </div>
+
+      {error && (
+        <Card>
+          <div className="text-center py-4 text-red-600">
+            <p>{error}</p>
+          </div>
+        </Card>
+      )}
 
       {/* Filters */}
       <Card>
@@ -140,7 +157,13 @@ export default function AppointmentsPage() {
 
       {/* Appointments List */}
       <div className="grid grid-cols-1 gap-4">
-        {filteredAppointments.length === 0 ? (
+        {loading ? (
+          <Card>
+            <div className="flex justify-center py-12">
+              <LoadingSpinner size="lg" text="Loading appointments..." />
+            </div>
+          </Card>
+        ) : filteredAppointments.length === 0 ? (
           <Card>
             <div className="text-center py-12">
               <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
