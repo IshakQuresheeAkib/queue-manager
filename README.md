@@ -2,7 +2,7 @@
 
 A comprehensive web application to manage service appointments, staff availability, and customer queues with intelligent conflict detection and queue management.
 
-## � Demo Account
+## 🚀 Demo Account
 
 Try the app instantly with our demo account:
 
