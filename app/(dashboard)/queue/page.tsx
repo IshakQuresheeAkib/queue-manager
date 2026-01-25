@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { List, Calendar, Clock, Briefcase, ArrowRight } from 'lucide-react';
 import { getAppointmentsWithDetails, getStaff, getServices, updateAppointment, addActivityLog } from '@/lib/supabase/queries';
 import { useRealtimeSubscription } from '@/lib/supabase/realtime';
-import { getTodayString } from '@/lib/utils/date';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -87,17 +86,17 @@ export default function QueuePage() {
         (s) => s.service_type === service.required_staff_type && s.availability_status === 'Available'
       );
 
-      const today = getTodayString();
+      const appointmentDate = appointment.appointment_date;
       let assignedStaff: Staff | null = null;
 
-      // Get all appointments for today
+      // Get all appointments for the appointment's date (not today)
       const allAppointments = await getAppointmentsWithDetails(user.id);
-      const todayAppointments = allAppointments.filter(
-        (a) => a.appointment_date === today && a.status !== 'Cancelled'
+      const dateAppointments = allAppointments.filter(
+        (a) => a.appointment_date === appointmentDate && a.status !== 'Cancelled'
       );
 
       for (const staffMember of eligibleStaff) {
-        const load = todayAppointments.filter((a) => a.staff_id === staffMember.id).length;
+        const load = dateAppointments.filter((a) => a.staff_id === staffMember.id).length;
 
         if (load < staffMember.daily_capacity) {
           assignedStaff = staffMember;

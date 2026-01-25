@@ -148,17 +148,19 @@ export default function StaffPage() {
         );
         if (!proceed) return;
 
-        // Move appointments to queue
+        // Move appointments to queue with sequential positions
         const queuedAppts = appointments.filter((apt) => apt.in_queue);
         const maxPosition = queuedAppts.length > 0 ? Math.max(...queuedAppts.map((apt) => apt.queue_position || 0)) : 0;
 
+        let nextQueuePosition = maxPosition + 1;
         for (const apt of appointments) {
           if (apt.staff_id === id && apt.status === 'Scheduled') {
             await updateAppointment(apt.id, {
               staff_id: null,
               in_queue: true,
-              queue_position: maxPosition + 1,
+              queue_position: nextQueuePosition,
             });
+            nextQueuePosition++;
           }
         }
       }

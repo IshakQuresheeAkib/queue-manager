@@ -29,8 +29,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const refreshProfile = useCallback(async (): Promise<void> => {
     if (!user) return;
-    const profile = await getUserProfile(user.id);
-    setUser(prev => prev ? { ...prev, profile } : null);
+    const userId = user.id;
+    const profile = await getUserProfile(userId);
+    // Only update if user hasn't changed during async operation
+    setUser(prev => prev?.id === userId ? { ...prev, profile } : prev);
   }, [user]);
 
   useEffect(() => {
@@ -49,14 +51,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           });
           setInitializing(false);
           
-          // Load profile in background
-          getUserProfile(session.user.id)
+          // Load profile in background with race condition protection
+          const userId = session.user.id;
+          getUserProfile(userId)
             .then(profile => {
               if (mounted) {
-                setUser(prev => prev ? { ...prev, profile } : null);
+                // Only update if user hasn't changed during async operation
+                setUser(prev => prev?.id === userId ? { ...prev, profile } : prev);
               }
             })
-            .catch();
+            .catch(error => console.error('Profile load failed:', error));
         } else {
           setUser(null);
           setInitializing(false);
@@ -134,7 +138,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      setUser(null);
     } finally {
       setLoading(false);
     }

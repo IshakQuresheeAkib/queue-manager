@@ -189,7 +189,7 @@ queue-manager/
 │   └── utils/                  # Utility functions
 ├── types/
 │   └── index.ts                # TypeScript type definitions
-├── middleware.ts               # Route protection
+├── proxy.ts               # Route protection
 └── .env.local                  # Environment variables (not in git)
 ```
 

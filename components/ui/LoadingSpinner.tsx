@@ -16,7 +16,7 @@ const sizeMap: Record<SpinnerSize, { spinner: string; container: string }> = {
   sm: { spinner: 'h-4 w-4 border-b-2', container: 'text-xs' },
   md: { spinner: 'h-6 w-6 border-b-2', container: 'text-sm' },
   lg: { spinner: 'h-8 w-8 border-b-2', container: 'text-base' },
-  xl: { spinner: 'h-12 w-12 border-b-[3px]', container: 'text-base' },
+  xl: { spinner: 'h-12 w-12 border-b-4', container: 'text-base' },
 };
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = memo(function LoadingSpinner({
@@ -30,7 +30,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = memo(function Loadi
   const spinnerElement = (
     <div className={`flex flex-col items-center justify-center gap-3 ${container} ${className}`}>
       <div
-        className={`animate-spin rounded-full border-blue-600 mx-auto ${spinner} ${fullScreen ? 'border-3' : ''}`}
+        className={`animate-spin rounded-full border-blue-600 mx-auto ${spinner} ${fullScreen ? 'border-1' : ''}`}
         role="status"
         aria-label={text || 'Loading'}
       />
