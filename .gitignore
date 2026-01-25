@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+IMPLEMENTATION_COMPLETE.md
+SUPABASE_SETUP.md
+
+# Test files (local development only)
+app/\(dashboard\)/test/page.tsx
