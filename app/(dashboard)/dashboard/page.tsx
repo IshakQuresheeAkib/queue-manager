@@ -6,6 +6,7 @@ import { Plus, Calendar, CheckCircle, Clock, List, User, Activity } from 'lucide
 import { motion } from 'framer-motion';
 import { getAppointments, getStaff, getActivityLogs } from '@/lib/supabase/queries';
 import { useAppointmentsRealtime, useStaffRealtime, useActivityLogsRealtime } from '@/lib/supabase/realtime';
+import { getTodayString } from '@/lib/utils/date';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -52,7 +53,7 @@ export default function DashboardPage() {
   useStaffRealtime(user?.id ?? '', setStaff);
   useActivityLogsRealtime(user?.id ?? '', setActivityLogs, 10);
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayString();
   const todayAppointments = appointments.filter(
     (a) => a.appointment_date === today && a.status !== 'Cancelled'
   );

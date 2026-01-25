@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { List, Calendar, Clock, Briefcase, ArrowRight } from 'lucide-react';
 import { getAppointmentsWithDetails, getStaff, getServices, updateAppointment, addActivityLog } from '@/lib/supabase/queries';
 import { useRealtimeSubscription } from '@/lib/supabase/realtime';
+import { getTodayString } from '@/lib/utils/date';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -86,7 +87,7 @@ export default function QueuePage() {
         (s) => s.service_type === service.required_staff_type && s.availability_status === 'Available'
       );
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayString();
       let assignedStaff: Staff | null = null;
 
       // Get all appointments for today

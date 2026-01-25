@@ -132,7 +132,7 @@ export default function ProfilePage() {
   };
 
   if (isLoading) {
-    return <LoadingSpinner size="xl" text="Loading..." fullScreen />;
+    return <LoadingSpinner size="xl" text="Loading profile..." fullScreen />;
   }
 
   return (

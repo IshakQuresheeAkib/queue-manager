@@ -90,28 +90,6 @@ export const DemoInfo: React.FC<DemoInfoProps> = memo(function DemoInfo({ classN
                   </p>
                 </div>
 
-                {/* Features List */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    Key Features
-                  </h3>
-                  <ul className="space-y-2">
-                    {[
-                      'Staff & service management',
-                      'Smart appointment scheduling',
-                      'Automatic queue handling',
-                      'Conflict detection',
-                      'Real-time updates',
-                      'Activity logging',
-                    ].map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-sm text-gray-600">
-                        <Check size={16} className="text-green-500" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
                 {/* Demo Credentials */}
                 <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100">
                   <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
