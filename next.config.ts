@@ -4,14 +4,16 @@ import type { NextConfig } from "next";
 const getSupabaseHostname = (): string => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) {
-    console.warn('⚠️ NEXT_PUBLIC_SUPABASE_URL not set - images may not load');
-    return 'localhost';
+    throw new Error(
+      'NEXT_PUBLIC_SUPABASE_URL is required but was not set. Please configure this environment variable to enable image loading.'
+    );
   }
   try {
     return new URL(supabaseUrl).hostname;
   } catch {
-    console.warn(`⚠️ Invalid NEXT_PUBLIC_SUPABASE_URL: ${supabaseUrl}`);
-    return 'localhost';
+    throw new Error(
+      `NEXT_PUBLIC_SUPABASE_URL is set to an invalid URL: "${supabaseUrl}". Please provide a valid URL.`
+    );
   }
 };
 
