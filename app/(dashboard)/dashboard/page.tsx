@@ -10,7 +10,7 @@ import { getTodayString } from '@/lib/utils/date';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { DashboardSkeleton } from '@/components/ui/PageSkeletons';
 import type { Appointment, Staff, ActivityLog } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
@@ -66,7 +66,7 @@ export default function DashboardPage() {
   }, [todayAppointments]);
 
   if (isLoading) {
-    return <LoadingSpinner size="xl" text="Loading dashboard..." fullScreen />;
+    return <DashboardSkeleton />;
   }
 
   return (

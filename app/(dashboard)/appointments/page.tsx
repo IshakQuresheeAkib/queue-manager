@@ -9,13 +9,16 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonAppointmentCard } from '@/components/ui/Skeleton';
+import { useToast } from '@/components/ui/ToastContext';
 import type { AppointmentWithDetails, Staff } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
+import { formatTime12Hour } from '@/lib/utils/date';
 
 export default function AppointmentsPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const toast = useToast();
 
   const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -51,7 +54,14 @@ export default function AppointmentsPage() {
 
   const handleDelete = useCallback(async (id: string): Promise<void> => {
     if (!user) return;
-    if (!confirm('Are you sure you want to delete this appointment?')) return;
+    const confirmed = await toast.confirm({
+      title: 'Delete Appointment',
+      message: 'Are you sure you want to delete this appointment? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       setError(null);
@@ -64,12 +74,14 @@ export default function AppointmentsPage() {
           appointment_id: null,
           description: 'Appointment deleted',
         });
+        toast.success('Appointment deleted');
       }
     } catch (err) {
       console.error('Error deleting appointment:', err);
       setError('Failed to delete appointment');
+      toast.error('Failed to delete appointment');
     }
-  }, [user]);
+  }, [user, toast]);
 
   const handleStatusChange = useCallback(async (id: string, status: 'Completed' | 'Cancelled' | 'No-Show'): Promise<void> => {
     if (!user) return;
@@ -89,13 +101,15 @@ export default function AppointmentsPage() {
             appointment_id: null,
             description: `Appointment for "${appointment.customer_name}" marked as ${status}`,
           });
+          toast.success(`Appointment marked as ${status}`);
         }
       }
     } catch (err) {
       console.error('Error updating appointment status:', err);
       setError('Failed to update appointment status');
+      toast.error('Failed to update appointment status');
     }
-  }, [user, appointments]);
+  }, [user, appointments, toast]);
 
   // Filter and sort appointments using useMemo
   const filteredAppointments = useMemo(() => {
@@ -158,11 +172,11 @@ export default function AppointmentsPage() {
       {/* Appointments List */}
       <div className="grid grid-cols-1 gap-4">
         {loading ? (
-          <Card>
-            <div className="flex justify-center py-12">
-              <LoadingSpinner size="lg" text="Loading appointments..." />
-            </div>
-          </Card>
+          <>
+            <SkeletonAppointmentCard />
+            <SkeletonAppointmentCard />
+            <SkeletonAppointmentCard />
+          </>
         ) : filteredAppointments.length === 0 ? (
           <Card>
             <div className="text-center py-12">
@@ -211,7 +225,7 @@ export default function AppointmentsPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock size={16} />
-                      {apt.appointment_time}
+                      {formatTime12Hour(apt.appointment_time)}
                     </div>
                   </div>
                 </div>

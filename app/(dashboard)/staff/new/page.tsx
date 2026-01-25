@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Combobox } from '@/components/ui/Combobox';
 import type { AvailabilityStatus } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
-import { addActivityLog, addStaff } from '@/lib/supabase/queries';
+import { addActivityLog, addStaff, getAllUniqueTypes } from '@/lib/supabase/queries';
 
 export default function NewStaffPage() {
   const router = useRouter();
@@ -20,8 +21,22 @@ export default function NewStaffPage() {
   const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus>('Available');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [serviceTypeSuggestions, setServiceTypeSuggestions] = useState<string[]>([]);
 
-  const serviceTypes = ['Doctor', 'Consultant', 'Support Agent', 'Therapist', 'Specialist'];
+  const defaultTypes = ['Doctor', 'Consultant', 'Support Agent', 'Therapist', 'Specialist'];
+
+  // Load suggestions from database
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchSuggestions = async () => {
+      const existingTypes = await getAllUniqueTypes(user.id);
+      const combined = new Set([...existingTypes, ...defaultTypes]);
+      setServiceTypeSuggestions(Array.from(combined).sort());
+    };
+
+    fetchSuggestions();
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -86,12 +101,12 @@ export default function NewStaffPage() {
             placeholder="Enter staff name"
             required
           />
-          <Select
+          <Combobox
             label="Service Type"
             value={serviceType}
             onChange={setServiceType}
-            options={serviceTypes.map((type) => ({ value: type, label: type }))}
-            placeholder="Select service type"
+            suggestions={serviceTypeSuggestions}
+            placeholder="Type or select any service type from below..."
             required
           />
           <Input

@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { FormSkeleton } from '@/components/ui/PageSkeletons';
 import type { Staff, Service, Appointment, AppointmentStatus } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
@@ -190,7 +190,7 @@ export default function EditAppointmentPage() {
   };
 
   if (loading) {
-    return <LoadingSpinner size="xl" text="Loading appointment..." fullScreen />;
+    return <FormSkeleton fields={6} />;
   }
 
   if (!currentAppointment) {

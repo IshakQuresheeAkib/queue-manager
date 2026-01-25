@@ -2,19 +2,22 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, User, Edit2, Trash2, Users } from 'lucide-react';
-import { getStaff, addStaff, updateStaff, deleteStaff, getAppointments, updateAppointment, addActivityLog } from '@/lib/supabase/queries';
+import { getStaff, addStaff, updateStaff, deleteStaff, getAppointments, updateAppointment, addActivityLog, getAllUniqueTypes } from '@/lib/supabase/queries';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Combobox } from '@/components/ui/Combobox';
+import { SkeletonGridCard } from '@/components/ui/Skeleton';
+import { useToast } from '@/components/ui/ToastContext';
 import type { Staff, AvailabilityStatus } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
 export default function StaffPage() {
   const { user } = useAuth();
+  const toast = useToast();
 
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,8 +29,9 @@ export default function StaffPage() {
   const [dailyCapacity, setDailyCapacity] = useState('5');
   const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus>('Available');
   const [submitting, setSubmitting] = useState(false);
+  const [serviceTypeSuggestions, setServiceTypeSuggestions] = useState<string[]>([]);
 
-  const serviceTypes = ['Doctor', 'Consultant', 'Support Agent', 'Therapist', 'Specialist'];
+  const defaultTypes = ['Doctor', 'Consultant', 'Support Agent', 'Therapist', 'Specialist'];
 
   // Load staff data from Supabase
   useEffect(() => {
@@ -37,8 +41,14 @@ export default function StaffPage() {
       try {
         setLoading(true);
         setError(null);
-        const data = await getStaff(user.id);
+        const [data, existingTypes] = await Promise.all([
+          getStaff(user.id),
+          getAllUniqueTypes(user.id),
+        ]);
         setStaff(data);
+        // Combine existing types with defaults, removing duplicates
+        const combined = new Set([...existingTypes, ...defaultTypes]);
+        setServiceTypeSuggestions(Array.from(combined).sort());
       } catch (err) {
         console.error('Error loading staff:', err);
         setError('Failed to load staff members');
@@ -77,7 +87,7 @@ export default function StaffPage() {
     if (!user) return;
 
     if (!name.trim() || !serviceType) {
-      alert('Please fill all required fields');
+      toast.warning('Please fill all required fields');
       return;
     }
 
@@ -101,6 +111,7 @@ export default function StaffPage() {
             appointment_id: null,
             description: `Staff member "${name}" updated`,
           });
+          toast.success(`Staff member "${name}" updated`);
         }
       } else {
         const created = await addStaff({
@@ -119,6 +130,7 @@ export default function StaffPage() {
             appointment_id: null,
             description: `Staff member "${name}" created`,
           });
+          toast.success(`Staff member "${name}" created`);
         }
       }
 
@@ -126,14 +138,22 @@ export default function StaffPage() {
     } catch (err) {
       console.error('Error saving staff:', err);
       setError('Failed to save staff member');
+      toast.error('Failed to save staff member');
     } finally {
       setSubmitting(false);
     }
-  }, [user, editingStaff, name, serviceType, dailyCapacity, availabilityStatus, closeModal]);
+  }, [user, editingStaff, name, serviceType, dailyCapacity, availabilityStatus, closeModal, toast]);
 
   const handleDelete = useCallback(async (id: string): Promise<void> => {
     if (!user) return;
-    if (!confirm('Are you sure you want to delete this staff member?')) return;
+    const confirmed = await toast.confirm({
+      title: 'Delete Staff Member',
+      message: 'Are you sure you want to delete this staff member? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       setError(null);
@@ -143,9 +163,13 @@ export default function StaffPage() {
       );
 
       if (hasActiveAppointments) {
-        const proceed = confirm(
-          'This staff member has active future appointments. These will be moved to the queue. Continue?'
-        );
+        const proceed = await toast.confirm({
+          title: 'Active Appointments Found',
+          message: 'This staff member has active future appointments. These will be moved to the queue. Continue?',
+          confirmText: 'Continue',
+          cancelText: 'Cancel',
+          variant: 'warning',
+        });
         if (!proceed) return;
 
         // Move appointments to queue with sequential positions
@@ -174,12 +198,14 @@ export default function StaffPage() {
           appointment_id: null,
           description: `Staff member deleted${hasActiveAppointments ? ' (appointments moved to queue)' : ''}`,
         });
+        toast.success(`Staff member deleted${hasActiveAppointments ? ' (appointments moved to queue)' : ''}`);
       }
     } catch (err) {
       console.error('Error deleting staff:', err);
       setError('Failed to delete staff member');
+      toast.error('Failed to delete staff member');
     }
-  }, [user]);
+  }, [user, toast]);
 
   const toggleAvailability = useCallback(async (id: string): Promise<void> => {
     if (!user) return;
@@ -201,13 +227,15 @@ export default function StaffPage() {
             appointment_id: null,
             description: `${staffMember.name} status changed to ${newStatus}`,
           });
+          toast.success(`${staffMember.name} is now ${newStatus}`);
         }
       }
     } catch (err) {
       console.error('Error toggling availability:', err);
       setError('Failed to update staff availability');
+      toast.error('Failed to update staff availability');
     }
-  }, [user, staff]);
+  }, [user, staff, toast]);
 
   return (
     <div className="space-y-6">
@@ -230,11 +258,11 @@ export default function StaffPage() {
       )}
 
       {loading ? (
-        <Card>
-          <div className="flex justify-center py-12">
-            <LoadingSpinner size="lg" text="Loading staff members..." />
-          </div>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <SkeletonGridCard />
+          <SkeletonGridCard />
+          <SkeletonGridCard />
+        </div>
       ) : staff.length === 0 ? (
         <Card>
           <div className="text-center py-12">
@@ -291,12 +319,12 @@ export default function StaffPage() {
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingStaff ? 'Edit Staff Member' : 'Add Staff Member'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input label="Name" value={name} onChange={setName} placeholder="Enter staff name" required />
-          <Select
+          <Combobox
             label="Service Type"
             value={serviceType}
             onChange={setServiceType}
-            options={serviceTypes.map((type) => ({ value: type, label: type }))}
-            placeholder="Select service type"
+            suggestions={serviceTypeSuggestions}
+            placeholder="Type or select any service type from below..."
             required
           />
           <Input label="Daily Capacity" type="number" value={dailyCapacity} onChange={setDailyCapacity} placeholder="5" required />

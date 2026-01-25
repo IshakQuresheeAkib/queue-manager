@@ -7,12 +7,15 @@ import { useRealtimeSubscription } from '@/lib/supabase/realtime';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonQueueItem } from '@/components/ui/Skeleton';
+import { useToast } from '@/components/ui/ToastContext';
 import type { AppointmentWithDetails, Staff, Service, Appointment } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
+import { formatTime12Hour } from '@/lib/utils/date';
 
 export default function QueuePage() {
   const { user } = useAuth();
+  const toast = useToast();
 
   const [queuedAppointments, setQueuedAppointments] = useState<AppointmentWithDetails[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -105,7 +108,7 @@ export default function QueuePage() {
       }
 
       if (!assignedStaff) {
-        alert('No available staff members to assign this appointment.');
+        toast.warning('No available staff members to assign this appointment.');
         return;
       }
 
@@ -134,6 +137,8 @@ export default function QueuePage() {
         appointment_id: null,
       });
 
+      toast.success(`Appointment assigned to ${assignedStaff.name}`);
+
       // Refresh data
       const appointmentsData = await getAppointmentsWithDetails(user.id);
       const queued = appointmentsData
@@ -143,8 +148,9 @@ export default function QueuePage() {
     } catch (err) {
       console.error('Error assigning from queue:', err);
       setError('Failed to assign appointment from queue');
+      toast.error('Failed to assign appointment from queue');
     }
-  }, [user, queuedAppointments, staff, services]);
+  }, [user, queuedAppointments, staff, services, toast]);
 
   return (
     <div className="space-y-6">
@@ -162,11 +168,11 @@ export default function QueuePage() {
       )}
 
       {loading ? (
-        <Card>
-          <div className="flex justify-center py-12">
-            <LoadingSpinner size="lg" text="Loading queue..." />
-          </div>
-        </Card>
+        <div className="grid grid-cols-1 gap-4">
+          <SkeletonQueueItem />
+          <SkeletonQueueItem />
+          <SkeletonQueueItem />
+        </div>
       ) : queuedAppointments.length === 0 ? (
         <Card>
           <div className="text-center py-12">
@@ -202,7 +208,7 @@ export default function QueuePage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock size={16} />
-                        {apt.appointment_time}
+                        {formatTime12Hour(apt.appointment_time)}
                       </div>
                     </div>
                   </div>

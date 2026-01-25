@@ -9,10 +9,12 @@ import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { DemoInfo } from '@/components/ui/DemoInfo';
 import { useAuth } from '@/components/ui/AuthContext';
+import { useToast } from '@/components/ui/ToastContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, demoLogin } = useAuth();
+  const toast = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,9 +27,12 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
+      toast.success('Welcome back!');
       router.push('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      const message = err instanceof Error ? err.message : 'Login failed';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -37,9 +42,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await demoLogin();
+      toast.success('Welcome to the demo account!');
       router.push('/dashboard');
-    } catch (err) {
+    } catch {
       setError('Demo login failed');
+      toast.error('Demo login failed');
     } finally {
       setLoading(false);
     }

@@ -10,13 +10,15 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { FormSkeleton } from '@/components/ui/PageSkeletons';
+import { useToast } from '@/components/ui/ToastContext';
 import type { Staff, Service, Appointment } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
 export default function NewAppointmentPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const toast = useToast();
   
   const [services, setServices] = useState<Service[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -168,7 +170,7 @@ export default function NewAppointmentPage() {
           });
 
           if (hasConflict) {
-            alert('This staff member already has an appointment at this time. Please choose another staff member or change the time.');
+            toast.warning('This staff member already has an appointment at this time. Please choose another staff member or change the time.');
             setSubmitting(false);
             return;
           }
@@ -229,6 +231,7 @@ export default function NewAppointmentPage() {
             description: `Appointment for "${customerName}" added to queue (position ${queuePosition})`,
             appointment_id: null,
           });
+          toast.info(`Appointment added to queue (position ${queuePosition})`);
         } else {
           const staffMember = staff.find((s) => s.id === finalStaffId);
           await addActivityLog({
@@ -237,6 +240,7 @@ export default function NewAppointmentPage() {
             description: `Appointment for "${customerName}" created and assigned to ${staffMember?.name || 'staff'}`,
             appointment_id: null,
           });
+          toast.success(`Appointment created and assigned to ${staffMember?.name || 'staff'}`);
         }
 
         router.push('/appointments');
@@ -244,6 +248,7 @@ export default function NewAppointmentPage() {
     } catch (err) {
       console.error('Error creating appointment:', err);
       setError('Failed to create appointment');
+      toast.error('Failed to create appointment');
     } finally {
       setSubmitting(false);
     }
@@ -265,11 +270,7 @@ export default function NewAppointmentPage() {
       )}
 
       {loading ? (
-        <Card>
-          <div className="flex justify-center py-12">
-            <LoadingSpinner size="lg" text="Loading form..." />
-          </div>
-        </Card>
+        <FormSkeleton fields={5} hasHeader={false} />
       ) : (
       <Card>
         <form onSubmit={handleSubmit} className="space-y-4">
