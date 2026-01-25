@@ -2,7 +2,7 @@
 
 A comprehensive web application to manage service appointments, staff availability, and customer queues with intelligent conflict detection and queue management.
 
-## � Demo Account
+## 🚀 Demo Account
 
 Try the app instantly with our demo account:
 
@@ -189,7 +189,7 @@ queue-manager/
 │   └── utils/                  # Utility functions
 ├── types/
 │   └── index.ts                # TypeScript type definitions
-├── proxy.ts               # Route protection
+├── proxy.ts                    # Route protection / proxy middleware
 └── .env.local                  # Environment variables (not in git)
 ```
 
