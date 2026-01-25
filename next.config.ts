@@ -1,8 +1,20 @@
 import type { NextConfig } from "next";
 
 // Extract hostname from NEXT_PUBLIC_SUPABASE_URL environment variable
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseHostname = supabaseUrl ? new URL(supabaseUrl).hostname : 'localhost';
+const getSupabaseHostname = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) {
+    return 'localhost';
+  }
+  try {
+    return new URL(supabaseUrl).hostname;
+  } catch {
+    console.warn(`Invalid NEXT_PUBLIC_SUPABASE_URL: ${supabaseUrl}. Using 'localhost' as fallback.`);
+    return 'localhost';
+  }
+};
+
+const supabaseHostname = getSupabaseHostname();
 
 const nextConfig: NextConfig = {
   images: {
