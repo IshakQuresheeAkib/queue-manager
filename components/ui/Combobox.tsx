@@ -30,6 +30,16 @@ export const Combobox: React.FC<ComboboxProps> = ({
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>(suggestions);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup blur timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Sync inputValue with external value changes
   useEffect(() => {
@@ -75,8 +85,12 @@ export const Combobox: React.FC<ComboboxProps> = ({
   }, []);
 
   const handleInputBlur = useCallback(() => {
+    // Clear any existing blur timeout
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+    }
     // Small delay to allow click on suggestion
-    setTimeout(() => {
+    blurTimeoutRef.current = setTimeout(() => {
       if (inputValue.trim() !== '') {
         onChange(inputValue.trim());
       }
