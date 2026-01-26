@@ -39,14 +39,8 @@ export default function DashboardLayout({
       <Navbar onMenuClick={() => setSidebarOpen(true)} />
       <div className="flex relative z-10">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <main className="flex-1 p-6 max-w-7xl mx-auto w-full">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full">{children}</main>
       </div>
-      {sidebarOpen && (
-        <div
-          onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-10 lg:hidden"
-        />
-      )}
     </div>
   );
 }

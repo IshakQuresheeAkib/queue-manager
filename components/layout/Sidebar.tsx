@@ -29,14 +29,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <motion.aside
-      initial={false}
-      animate={{
-        x: isOpen || (typeof window !== 'undefined' && window.innerWidth >= 1024) ? 0 : -280,
-      }}
-      className="fixed lg:sticky top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-black/50 backdrop-blur-xl border-r border-white/10 z-20 overflow-y-auto"
-    >
-      <div className="p-4 space-y-2">
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+        />
+      )}
+      
+      {/* Sidebar */}
+      <motion.aside
+        initial={false}
+        animate={{
+          x: isOpen || (typeof window !== 'undefined' && window.innerWidth >= 1024) ? 0 : -280,
+        }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="fixed lg:sticky top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-black/90 lg:bg-black/50 backdrop-blur-xl border-r border-white/10 z-40 lg:z-20 overflow-y-auto shadow-2xl lg:shadow-none"
+      >
+        <div className="p-4 space-y-2">
         {menuItems.map((item) => (
           <motion.button
             key={item.id}
@@ -57,6 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </motion.button>
         ))}
       </div>
-    </motion.aside>
+      </motion.aside>
+    </>
   );
 };

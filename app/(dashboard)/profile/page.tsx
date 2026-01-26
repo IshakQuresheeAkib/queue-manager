@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
 import { Heading } from '@/components/ui/Heading';
+import { ImageCropUpload } from '@/components/ui/ImageCropUpload';
 import type { UserProfile } from '@/types';
 
 export default function ProfilePage() {
@@ -62,22 +63,8 @@ export default function ProfilePage() {
     setErrorMessage('');
   };
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0] || !user) return;
-
-    const file = e.target.files[0];
-    
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setErrorMessage('Please select an image file');
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage('Image size must be less than 5MB');
-      return;
-    }
+  const handleImageCropped = async (file: File) => {
+    if (!user) return;
 
     setIsUploadingImage(true);
     setErrorMessage('');
@@ -153,40 +140,18 @@ export default function ProfilePage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Profile Image */}
           <div className="flex flex-col items-center">
-            <div className="relative group">
-              <div className="w-32 h-32 rounded-full bg-white/5 border-2 border-white/10 flex items-center justify-center overflow-hidden">
-                {profile?.image_url ? (
-                  <Image
-                    src={profile.image_url}
-                    alt="Profile"
-                    width={128}
-                    height={128}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <User className="text-white/40" size={48} />
-                )}
-              </div>
-              <label
-                htmlFor="image-upload"
-                className="absolute bottom-0 right-0 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-green-600 transition-colors shadow-lg"
-              >
-                {isUploadingImage ? (
-                  <Loader2 className="text-white animate-spin" size={20} />
-                ) : (
-                  <Camera className="text-white" size={20} />
-                )}
-              </label>
-              <input
-                id="image-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-                disabled={isUploadingImage}
+            <div className="mt-4">
+              {
+                !profile?.image_url && <User size={48} className="text-white/30 mb-2 mx-auto" />
+              }
+              <ImageCropUpload
+                onImageCropped={handleImageCropped}
+                currentImage={profile?.image_url || undefined}
+                aspectRatio={1}
+                maxSize={5}
+                loading={isUploadingImage}
               />
             </div>
-            <p className="text-sm text-white/40 mt-3">Click camera icon to upload new image</p>
           </div>
 
           {/* Email (Read-only) */}

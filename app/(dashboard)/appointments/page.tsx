@@ -10,11 +10,18 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { SkeletonAppointmentCard } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/ToastContext';
 import type { AppointmentWithDetails, Staff } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 import { formatTime12Hour } from '@/lib/utils/date';
+
+// Helper to convert Date to YYYY-MM-DD string
+const dateToString = (date: Date | null): string => {
+  if (!date) return '';
+  return date.toISOString().split('T')[0];
+};
 
 export default function AppointmentsPage() {
   const router = useRouter();
@@ -25,7 +32,7 @@ export default function AppointmentsPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filterDate, setFilterDate] = useState('');
+  const [filterDate, setFilterDate] = useState<Date | null>(null);
   const [filterStaff, setFilterStaff] = useState('');
 
   // Load data from Supabase
@@ -117,7 +124,8 @@ export default function AppointmentsPage() {
     let filtered = appointments;
 
     if (filterDate) {
-      filtered = filtered.filter((a) => a.appointment_date === filterDate);
+      const dateString = dateToString(filterDate);
+      filtered = filtered.filter((a) => a.appointment_date === dateString);
     }
     if (filterStaff) {
       filtered = filtered.filter((a) => a.staff_id === filterStaff);
@@ -153,12 +161,11 @@ export default function AppointmentsPage() {
       {/* Filters */}
       <Card>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
+          <DatePicker
             label="Filter by Date"
-            type="date"
             value={filterDate}
             onChange={setFilterDate}
-            icon={<Calendar size={20} />}
+            placeholder="Select date"
           />
           <Select
             label="Filter by Staff"

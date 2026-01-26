@@ -8,12 +8,28 @@ import { getServices, getStaff, getAppointments, updateAppointment, addActivityL
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { DatePicker } from '@/components/ui/DatePicker';
+import { TimePicker } from '@/components/ui/TimePicker';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { FormSkeleton } from '@/components/ui/PageSkeletons';
 import { Heading } from '@/components/ui/Heading';
 import type { Staff, Service, Appointment, AppointmentStatus } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
+
+// Helper functions for date conversion
+const dateToString = (date: Date | null): string => {
+  if (!date) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const stringToDate = (dateStr: string): Date | null => {
+  if (!dateStr) return null;
+  return new Date(dateStr + 'T00:00:00');
+};
 
 export default function EditAppointmentPage() {
   const router = useRouter();
@@ -32,7 +48,7 @@ export default function EditAppointmentPage() {
   const [customerName, setCustomerName] = useState('');
   const [serviceId, setServiceId] = useState('');
   const [staffId, setStaffId] = useState('');
-  const [appointmentDate, setAppointmentDate] = useState('');
+  const [appointmentDate, setAppointmentDate] = useState<Date | null>(null);
   const [appointmentTime, setAppointmentTime] = useState('');
   const [status, setStatus] = useState<AppointmentStatus>('Scheduled');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -60,7 +76,7 @@ export default function EditAppointmentPage() {
           setCustomerName(existingAppointment.customer_name);
           setServiceId(existingAppointment.service_id);
           setStaffId(existingAppointment.staff_id || '');
-          setAppointmentDate(existingAppointment.appointment_date);
+          setAppointmentDate(stringToDate(existingAppointment.appointment_date));
           setAppointmentTime(existingAppointment.appointment_time);
           setStatus(existingAppointment.status);
         }
@@ -101,10 +117,12 @@ export default function EditAppointmentPage() {
     const startTime = hours * 60 + minutes;
     const endTime = startTime + service.duration;
 
+    const dateString = dateToString(appointmentDate);
+
     const hasConflict = appointments.some((a) => {
       if (a.id === appointmentId) return false;
       if (a.staff_id !== staffId) return false;
-      if (a.appointment_date !== appointmentDate) return false;
+      if (a.appointment_date !== dateString) return false;
       if (a.status === 'Cancelled') return false;
 
       const aptService = services.find((s) => s.id === a.service_id);
@@ -124,12 +142,13 @@ export default function EditAppointmentPage() {
   const getStaffLoad = useCallback(
     (staffMemberId: string): number => {
       if (!appointmentDate) return 0;
+      const dateString = dateToString(appointmentDate);
       return appointments
         .filter(
           (a) =>
             a.id !== appointmentId &&
             a.staff_id === staffMemberId &&
-            a.appointment_date === appointmentDate &&
+            a.appointment_date === dateString &&
             a.status !== 'Cancelled'
         ).length;
     },
@@ -165,7 +184,7 @@ export default function EditAppointmentPage() {
         customer_name: customerName.trim(),
         service_id: serviceId,
         staff_id: staffId || null,
-        appointment_date: appointmentDate,
+        appointment_date: dateToString(appointmentDate),
         appointment_time: appointmentTime,
         status,
       });
@@ -237,18 +256,17 @@ export default function EditAppointmentPage() {
             required
           />
 
-          <Input
+          <DatePicker
             label="Appointment Date"
-            type="date"
             value={appointmentDate}
             onChange={setAppointmentDate}
+            minDate={new Date()}
             error={errors.appointmentDate}
             required
           />
 
-          <Input
+          <TimePicker
             label="Appointment Time"
-            type="time"
             value={appointmentTime}
             onChange={setAppointmentTime}
             error={errors.appointmentTime}
