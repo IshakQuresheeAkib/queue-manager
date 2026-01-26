@@ -60,8 +60,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           {required && <span className="text-red-400 ml-1">*</span>}
         </label>
       )}
-      <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none z-10">
+      <div className="relative focus-within:text-green-400">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none z-10 transition-colors">
           <Calendar size={18} />
         </div>
         <ReactDatePicker
