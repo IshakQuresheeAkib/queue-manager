@@ -34,7 +34,9 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-black relative">
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Background Glow - lower opacity than auth pages */}
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none w-[600px] h-[600px] bg-green-500/15 rounded-full blur-[180px] z-0" />
       <div className="fixed inset-0 bg-green-500/5 pointer-events-none z-0" />
       <Navbar 
         onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
