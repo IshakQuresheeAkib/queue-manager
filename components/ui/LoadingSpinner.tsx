@@ -30,17 +30,17 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = memo(function Loadi
   const spinnerElement = (
     <div className={`flex flex-col items-center justify-center gap-3 ${container} ${className}`}>
       <div
-        className={`animate-spin rounded-full border-blue-600 mx-auto ${spinner} ${fullScreen ? 'border-1' : ''}`}
+        className={`animate-spin rounded-full border-green-500 mx-auto ${spinner} ${fullScreen ? 'border-1' : ''}`}
         role="status"
         aria-label={text || 'Loading'}
       />
-      {text && <p className="text-gray-600">{text}</p>}
+      {text && <p className="text-white/60">{text}</p>}
     </div>
   );
 
   if (fullScreen) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
         {spinnerElement}
       </div>
     );

@@ -5,15 +5,23 @@ import { useRouter } from 'next/navigation';
 import { Plus, Calendar, Clock, Briefcase, User, Edit2, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { getAppointmentsWithDetails, deleteAppointment, updateAppointment, getStaff, addActivityLog } from '@/lib/supabase/queries';
 import { Button } from '@/components/ui/Button';
+import { Heading } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { SkeletonAppointmentCard } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/ToastContext';
 import type { AppointmentWithDetails, Staff } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 import { formatTime12Hour } from '@/lib/utils/date';
+
+// Helper to convert Date to YYYY-MM-DD string
+const dateToString = (date: Date | null): string => {
+  if (!date) return '';
+  return date.toISOString().split('T')[0];
+};
 
 export default function AppointmentsPage() {
   const router = useRouter();
@@ -24,7 +32,7 @@ export default function AppointmentsPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filterDate, setFilterDate] = useState('');
+  const [filterDate, setFilterDate] = useState<Date | null>(null);
   const [filterStaff, setFilterStaff] = useState('');
 
   // Load data from Supabase
@@ -116,7 +124,8 @@ export default function AppointmentsPage() {
     let filtered = appointments;
 
     if (filterDate) {
-      filtered = filtered.filter((a) => a.appointment_date === filterDate);
+      const dateString = dateToString(filterDate);
+      filtered = filtered.filter((a) => a.appointment_date === dateString);
     }
     if (filterStaff) {
       filtered = filtered.filter((a) => a.staff_id === filterStaff);
@@ -134,8 +143,7 @@ export default function AppointmentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
-          <p className="text-gray-600 mt-1">Manage all appointments</p>
+          <Heading title="Appointments" tagline="Manage all appointments" />
         </div>
         <Button onClick={() => router.push('/appointments/new')} icon={<Plus size={20} />} disabled={loading}>
           New Appointment
@@ -153,12 +161,11 @@ export default function AppointmentsPage() {
       {/* Filters */}
       <Card>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
+          <DatePicker
             label="Filter by Date"
-            type="date"
             value={filterDate}
             onChange={setFilterDate}
-            icon={<Calendar size={20} />}
+            placeholder="Select date"
           />
           <Select
             label="Filter by Staff"
@@ -180,7 +187,7 @@ export default function AppointmentsPage() {
         ) : filteredAppointments.length === 0 ? (
           <Card>
             <div className="text-center py-12">
-              <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
+              <Calendar className="mx-auto text-white mb-4" size={48} />
               <p className="text-gray-500 text-lg">No appointments found</p>
               <Button onClick={() => router.push('/appointments/new')} className="mt-4">
                 Create Your First Appointment
@@ -193,7 +200,7 @@ export default function AppointmentsPage() {
               <div className="flex items-start justify-between flex-wrap gap-4">
                 <div className="flex-1 min-w-[250px]">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-bold text-gray-900">{apt.customer_name}</h3>
+                    <h3 className="text-lg font-bold text-gray-200">{apt.customer_name}</h3>
                     {apt.in_queue ? (
                       <Badge variant="warning">Queue #{apt.queue_position}</Badge>
                     ) : (
@@ -211,19 +218,19 @@ export default function AppointmentsPage() {
                     )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-white">
                       <Briefcase size={16} />
                       {apt.service?.name || 'N/A'} ({apt.service?.duration} min)
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-white">
                       <User size={16} />
                       {apt.staff?.name || 'Unassigned'}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-white">
                       <Calendar size={16} />
                       {new Date(apt.appointment_date).toLocaleDateString()}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-white">
                       <Clock size={16} />
                       {formatTime12Hour(apt.appointment_time)}
                     </div>

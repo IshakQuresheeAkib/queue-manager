@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { Heading } from "@/components/ui/Heading";
 import { Select } from '@/components/ui/Select';
 import { Combobox } from '@/components/ui/Combobox';
 import type { AvailabilityStatus } from '@/types';
@@ -80,8 +81,7 @@ export default function NewStaffPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">New Staff Member</h1>
-        <p className="text-gray-600 mt-1">Add a new team member</p>
+        <Heading title="New Staff Member" tagline="Add a new team member" />
       </div>
 
       {error && (

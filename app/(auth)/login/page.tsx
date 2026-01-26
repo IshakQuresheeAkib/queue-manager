@@ -3,10 +3,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Calendar, Mail, Lock } from 'lucide-react';
+import { Mail, Lock, SwatchBook } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Card } from '@/components/ui/Card';
 import { DemoInfo } from '@/components/ui/DemoInfo';
 import { useAuth } from '@/components/ui/AuthContext';
 import { useToast } from '@/components/ui/ToastContext';
@@ -53,86 +52,87 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4 relative">
-      <div className="absolute top-4 right-4">
+    <section className='relative bg-black min-h-screen flex flex-col md:flex-row items-center justify-center px-4 py-20 gap-20 overflow-hidden'>
+       {/* Background Glow */}
+       <div className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none w-[500px] h-[500px] bg-green-500/30 rounded-full blur-[150px]'></div>
+
+       <div className='absolute top-4 right-4 z-20'>
         <DemoInfo />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
-        <Card>
-          <div className="text-center mb-8">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 200 }}
-              className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4"
-            >
-              <Calendar className="text-blue-600" size={32} />
-            </motion.div>
-            <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-            <p className="text-gray-600 mt-2">Sign in to manage appointments</p>
+       <div className='flex flex-col md:flex-row max-w-6xl w-full z-10 gap-12 items-center'>
+          {/* Left Side Info */}
+          <div className='text-center md:text-left flex-1 space-y-6'>
+
+            <h1 className='font-medium text-4xl md:text-6xl leading-tight bg-gradient-to-r from-white to-green-300 bg-clip-text text-transparent'>
+                Manage Queues & Appointments Smarter
+            </h1>
+            <p className='text-lg text-white/60 max-w-md mx-auto md:mx-0'>
+                Streamline your business operations with our advanced scheduling and queue management system.
+            </p> 
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Email"
-              type="email"
-              value={email}
-              onChange={setEmail}
-              placeholder="your@email.com"
-              icon={<Mail size={20} />}
-              required
-            />
-            <Input
-              label="Password"
-              type="password"
-              value={password}
-              onChange={setPassword}
-              placeholder="••••••••"
-              icon={<Lock size={20} />}
-              required
-            />
+          {/* Right Side Form */}
+          <div className='w-full max-w-md bg-[#00A63E]/5 backdrop-blur-md border border-white/10 rounded-xl p-8 relative'>
+             <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500/10 rounded-full mb-4 border border-green-500/20">
+                    <SwatchBook className="text-white" size={32}/>
+                </div>
+                <h2 className='text-2xl font-bold text-white'>Welcome Back</h2>
+                <p className='text-white/40 text-sm'>Sign in to your dashboard</p>
+             </div>
 
-            {error && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="bg-red-50 text-red-600 p-3 rounded-lg text-sm"
-              >
-                {error}
-              </motion.div>
-            )}
+             <form onSubmit={handleSubmit} className='space-y-6'>
+                <Input 
+                   label="Email"
+                   type="email"
+                   required
+                   placeholder="Eden@example.com" 
+                   value={email}
+                   onChange={setEmail}
+                   icon={<Mail size={18} />}
+                />
 
-            <Button type="submit" variant="primary" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
-          </form>
+                <Input 
+                    label="Password"
+                    type="password" 
+                    required
+                    placeholder="••••••••" 
+                    value={password}
+                    onChange={setPassword}
+                    icon={<Lock size={18} />}
+                />
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or</span>
-            </div>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-red-500/10 border border-red-500/20 text-red-200 p-3 rounded-lg text-sm"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+    
+                <div className='space-y-4'>
+                    <Button type="submit" variant="primary" className='w-full' disabled={loading}>
+                        {loading ? 'Submitting...' : 'Sign In'}
+                    </Button>
+                    
+                    <div className="relative flex justify-center text-xs">
+                        <span className="px-2 bg-transparent text-white/20 uppercase tracking-wider">Or continue with</span>
+                    </div>
+
+                    <Button variant="secondary" className="w-full" onClick={handleDemoLogin} disabled={loading} type="button">
+                        Try Demo Account
+                    </Button>
+                </div>
+
+                <p className='text-center text-xs text-white/40 mt-6'>
+                    Don&apos;t have an account? <button type="button" onClick={() => router.push('/signup')} className='text-green-400 hover:text-green-300'>Sign Up</button>
+                </p>
+             </form>
           </div>
-
-          <Button variant="secondary" className="w-full" onClick={handleDemoLogin} disabled={loading}>
-            Try Demo Account
-          </Button>
-
-          <p className="text-center text-gray-600 mt-6">
-            Don&apos;t have an account?{' '}
-            <button onClick={() => router.push('/signup')} className="text-blue-600 font-medium hover:underline">
-              Sign Up
-            </button>
-          </p>
-        </Card>
-      </motion.div>
-    </div>
+       </div>
+    </section>
   );
 }

@@ -34,7 +34,7 @@ export const Skeleton: React.FC<SkeletonProps> = memo(function Skeleton({
   rounded = 'md',
   count = 1,
 }) {
-  const baseClasses = `animate-pulse bg-gray-200 ${roundedMap[rounded]} ${width} ${height} ${className}`;
+  const baseClasses = `animate-pulse bg-white/10 ${roundedMap[rounded]} ${width} ${height} ${className}`;
 
   if (count === 1) {
     return <div className={baseClasses} />;
@@ -95,7 +95,9 @@ export const SkeletonCard: React.FC<{
   className?: string;
 }> = memo(function SkeletonCard({ children, className = '' }) {
   return (
-    <div className={`bg-white rounded-xl shadow-lg p-6 ${className}`}>
+    <div className={`
+        bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 
+        transition-all duration-300 shadow-lg ${className}`}>
       {children}
     </div>
   );
@@ -127,7 +129,7 @@ export const SkeletonListItem: React.FC<{
   className?: string;
 }> = memo(function SkeletonListItem({ hasAvatar = true, hasAction = true, className = '' }) {
   return (
-    <div className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg ${className}`}>
+    <div className={`flex items-center justify-between p-3 bg-white/5 rounded-lg ${className}`}>
       <div className="flex items-center gap-3 flex-1">
         {hasAvatar && <SkeletonCircle size="md" />}
         <div className="space-y-2 flex-1">

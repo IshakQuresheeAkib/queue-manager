@@ -7,8 +7,8 @@ import { useToast } from "@/components/ui/ToastContext";
 import { Lock, Mail, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { motion } from 'framer-motion';
-import { Card } from "@/components/ui/Card";
 import { useRouter } from "next/navigation";
+import { Heading } from "@/components/ui/Heading";
 
 
 const SignupPage: React.FC = () => {
@@ -52,24 +52,27 @@ const SignupPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-4">
+    <section className="relative bg-black min-h-screen flex items-center justify-center px-4 py-20 overflow-hidden">
+        {/* Background Glow */}
+       <div className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none w-[500px] h-[500px] bg-green-500/30 rounded-full blur-[150px]'></div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
-        <Card>
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-8 shadow-2xl">
           <div className="text-center mb-8">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 200 }}
-              className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4"
+              className="inline-flex items-center justify-center w-16 h-16 bg-green-500/10 border border-green-500/20 rounded-full mb-4"
             >
-              <UserPlus className="text-purple-600" size={32} />
+              <UserPlus className="text-green-400" size={32} />
             </motion.div>
-            <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
-            <p className="text-gray-600 mt-2">Start managing appointments today</p>
+            
+            <Heading title="Create Account" tagline="Start managing appointments" align="center" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -105,7 +108,7 @@ const SignupPage: React.FC = () => {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="bg-red-50 text-red-600 p-3 rounded-lg text-sm"
+                className="bg-red-500/10 border border-red-500/20 text-red-200 p-3 rounded-lg text-sm"
               >
                 {error}
               </motion.div>
@@ -121,18 +124,18 @@ const SignupPage: React.FC = () => {
             </Button>
           </form>
 
-          <p className="text-center text-gray-600 mt-6">
+          <p className="text-center text-white/40 mt-6 text-sm">
             Already have an account?{' '}
             <button
               onClick={() => router.push('login')}
-              className="text-blue-600 font-medium hover:underline"
+              className="text-green-400 font-medium hover:text-green-300 transition-colors"
             >
               Sign In
             </button>
           </p>
-        </Card>
+        </div>
       </motion.div>
-    </div>
+    </section>
   );
 };
 

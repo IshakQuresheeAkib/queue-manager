@@ -17,7 +17,18 @@ const config: Config = {
 
   ],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        rotate: 'rotate 4s ease-in-out infinite',
+      },
+      keyframes: {
+        rotate: {
+          '0%': { transform: 'rotate(70deg)' },
+          '50%': { transform: 'rotate(100deg)' },
+          '100%': { transform: 'rotate(70deg)' },
+        },
+      },
+    },
   },
   plugins: [],
 };

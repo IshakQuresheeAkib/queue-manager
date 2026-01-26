@@ -8,12 +8,24 @@ import { getServices, getStaff, getAppointments, addAppointment, addActivityLog 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { Heading } from "@/components/ui/Heading";
+import { DatePicker } from '@/components/ui/DatePicker';
+import { TimePicker } from '@/components/ui/TimePicker';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { FormSkeleton } from '@/components/ui/PageSkeletons';
 import { useToast } from '@/components/ui/ToastContext';
 import type { Staff, Service, Appointment } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
+
+// Helper functions for date conversion
+const dateToString = (date: Date | null): string => {
+  if (!date) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export default function NewAppointmentPage() {
   const router = useRouter();
@@ -31,7 +43,7 @@ export default function NewAppointmentPage() {
   const [customerName, setCustomerName] = useState('');
   const [serviceId, setServiceId] = useState('');
   const [staffId, setStaffId] = useState('');
-  const [appointmentDate, setAppointmentDate] = useState('');
+  const [appointmentDate, setAppointmentDate] = useState<Date | null>(null);
   const [appointmentTime, setAppointmentTime] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -82,9 +94,11 @@ export default function NewAppointmentPage() {
     const startTime = hours * 60 + minutes;
     const endTime = startTime + service.duration;
 
+    const dateString = dateToString(appointmentDate);
+
     const hasConflict = appointments.some((a) => {
       if (a.staff_id !== staffId) return false;
-      if (a.appointment_date !== appointmentDate) return false;
+      if (a.appointment_date !== dateString) return false;
       if (a.status === 'Cancelled') return false;
 
       const aptService = services.find((s) => s.id === a.service_id);
@@ -103,10 +117,11 @@ export default function NewAppointmentPage() {
   // Calculate staff load from appointments state
   const getStaffLoad = useCallback((staffMemberId: string): number => {
     if (!appointmentDate) return 0;
+    const dateString = dateToString(appointmentDate);
     return appointments.filter(
       (a) =>
         a.staff_id === staffMemberId &&
-        a.appointment_date === appointmentDate &&
+        a.appointment_date === dateString &&
         a.status !== 'Cancelled'
     ).length;
   }, [appointmentDate, appointments]);
@@ -154,9 +169,11 @@ export default function NewAppointmentPage() {
           const startTime = hours * 60 + minutes;
           const endTime = startTime + service.duration;
 
+          const dateString = dateToString(appointmentDate);
+
           const hasConflict = appointments.some((a) => {
             if (a.staff_id !== staffId) return false;
-            if (a.appointment_date !== appointmentDate) return false;
+            if (a.appointment_date !== dateString) return false;
             if (a.status === 'Cancelled') return false;
 
             const aptService = services.find((s) => s.id === a.service_id);
@@ -216,7 +233,7 @@ export default function NewAppointmentPage() {
         customer_name: customerName.trim(),
         service_id: serviceId,
         staff_id: finalStaffId || null,
-        appointment_date: appointmentDate,
+        appointment_date: dateToString(appointmentDate),
         appointment_time: appointmentTime,
         status: 'Scheduled',
         in_queue: inQueue,
@@ -257,8 +274,7 @@ export default function NewAppointmentPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">New Appointment</h1>
-        <p className="text-gray-600 mt-1">Fill in the appointment details</p>
+        <Heading title="New Appointment" tagline="Fill in the appointment details" />
       </div>
 
       {error && (
@@ -296,18 +312,17 @@ export default function NewAppointmentPage() {
             required
           />
 
-          <Input
+          <DatePicker
             label="Appointment Date"
-            type="date"
             value={appointmentDate}
             onChange={setAppointmentDate}
+            minDate={new Date()}
             error={errors.appointmentDate}
             required
           />
 
-          <Input
+          <TimePicker
             label="Appointment Time"
-            type="time"
             value={appointmentTime}
             onChange={setAppointmentTime}
             error={errors.appointmentTime}
@@ -316,7 +331,7 @@ export default function NewAppointmentPage() {
 
           {serviceId && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-400 mb-2">
                 Assign Staff (Optional)
               </label>
               <div className="space-y-2">
@@ -358,11 +373,11 @@ export default function NewAppointmentPage() {
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-gray-700">{s.name}</p>
-                              <p className="text-sm text-gray-600">{s.service_type}</p>
+                              <p className="font-medium text-gray-100">{s.name}</p>
+                              <p className="text-sm text-gray-400">{s.service_type}</p>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-gray-500">
+                            <div className="flex items-center gap-2 text-gray-400">
+                              <span className="text-sm text-gray-400">
                                 {load} / {s.daily_capacity} appointments today
                               </span>
                               {isOnLeave ? (

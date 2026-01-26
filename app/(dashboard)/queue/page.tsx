@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { SkeletonQueueItem } from '@/components/ui/Skeleton';
+import { Heading } from '@/components/ui/Heading';
 import { useToast } from '@/components/ui/ToastContext';
 import type { AppointmentWithDetails, Staff, Service, Appointment } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
@@ -155,8 +156,7 @@ export default function QueuePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Waiting Queue</h1>
-        <p className="text-gray-600 mt-1">Manage appointments waiting for staff assignment</p>
+        <Heading title="Waiting Queue" tagline="Manage appointments waiting for staff assignment" />
       </div>
 
       {error && (
@@ -176,11 +176,11 @@ export default function QueuePage() {
       ) : queuedAppointments.length === 0 ? (
         <Card>
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <List className="text-gray-400" size={32} />
+            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+              <List className="text-white/40" size={32} />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Queue is Empty</h3>
-            <p className="text-gray-600">No appointments are waiting for staff assignment</p>
+            <h3 className="text-lg font-medium text-white mb-2">Queue is Empty</h3>
+            <p className="text-white/60">No appointments are waiting for staff assignment</p>
           </div>
         </Card>
       ) : (
@@ -189,24 +189,24 @@ export default function QueuePage() {
             <Card key={apt.id} hover>
               <div className="flex items-start justify-between flex-wrap gap-4">
                 <div className="flex items-start gap-4 flex-1 min-w-[250px]">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-purple-600 font-bold">#{apt.queue_position}</span>
+                  <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-purple-400 font-bold">#{apt.queue_position}</span>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{apt.customer_name}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-white mb-2">{apt.customer_name}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-white/60">
+                      <div className="flex items-center gap-2 text-white">
                         <Briefcase size={16} />
                         {apt.service?.name || 'N/A'} ({apt.service?.duration} min)
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 text-white">
                         <Badge variant="info">Required: {apt.service?.required_staff_type}</Badge>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 text-white">
                         <Calendar size={16} />
                         {new Date(apt.appointment_date).toLocaleDateString()}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 text-white">
                         <Clock size={16} />
                         {formatTime12Hour(apt.appointment_time)}
                       </div>

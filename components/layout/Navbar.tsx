@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Calendar, LogOut, Menu, User as UserIcon } from 'lucide-react';
+import { LogOut, SwatchBook, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '../ui/AuthContext';
 import { useToast } from '../ui/ToastContext';
@@ -10,9 +10,10 @@ import { useRouter } from 'next/navigation';
 
 interface NavbarProps {
   onMenuClick: () => void;
+  isSidebarOpen: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
   const { user, logout } = useAuth();
   const toast = useToast();
   const router = useRouter();
@@ -24,46 +25,60 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-30">
+    <nav className="bg-green-950/20 backdrop-blur-3xl shadow-2xl shadow-green-900/20 border-b border-white/20 sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
-            <button onClick={onMenuClick} className="lg:hidden text-gray-600 hover:text-gray-900">
-              <Menu size={24} />
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Calendar className="text-white" size={24} />
+            <button 
+              onClick={onMenuClick} 
+              className="lg:hidden text-white/70 hover:text-white transition-colors p-2"
+              aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+            >
+              <div id="nav-icon2" className={isSidebarOpen ? 'open' : ''}>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
               </div>
-              <span className="text-xl font-bold text-gray-900">AppointmentHub</span>
+            </button>
+            <div className="flex items-center gap-2 text-white">
+              <div className="w-10 h-10  rounded-lg flex items-center justify-center">
+                <SwatchBook className="text-green-400" size={28}/>
+              </div>
+              <span className="text-2xl font-bold text-white bg-clip-text bg-gradient-to-r from-white to-green-400 hidden sm:inline">AppointmentHub</span>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push('/profile')}
-              className="flex items-center gap-2 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors"
+              className="flex items-center gap-2 hover:bg-white/5 px-3 py-2 rounded-lg transition-colors border border-transparent hover:border-white/10"
             >
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden relative">
+              <div className="avatar-container w-10 h-10">
                 {user?.profile?.image_url ? (
                   <Image
                     src={user.profile.image_url}
                     alt="Profile"
-                    width={32}
-                    height={32}
-                    className="w-full h-full object-cover"
+                    width={40}
+                    height={40}
+                    className="avatar-mask w-full h-full object-cover"
                   />
                 ) : (
-                  <UserIcon className="text-gray-400" size={18} />
+                  <div className="avatar-mask w-full h-full bg-white/10 flex items-center justify-center">
+                    <UserIcon className="text-white/60" size={20} />
+                  </div>
                 )}
-              </div>
-              <div className="text-left hidden md:block">
-                <div className="text-sm font-medium text-gray-900">
-                  {user?.profile?.name || 'User'}
-                </div>
-                <div className="text-xs text-gray-500">{user?.email}</div>
+                <span className="avatar-indicator"></span>
               </div>
             </button>
-            <Button variant="secondary" size="sm" icon={<LogOut size={16} />} onClick={handleLogout}>
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              icon={<LogOut size={16} />} 
+              onClick={handleLogout}
+              className="hidden min-[600px]:flex"
+            >
               Logout
             </Button>
           </div>

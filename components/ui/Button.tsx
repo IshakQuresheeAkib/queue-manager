@@ -24,17 +24,46 @@ export const Button: React.FC<ButtonProps> = ({
   disabled = false,
   type = 'button',
 }) => {
-  const variants = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white',
-    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800',
-    danger: 'bg-red-600 hover:bg-red-700 text-white',
-    success: 'bg-green-600 hover:bg-green-700 text-white',
+  const sizes = {
+    sm: 'px-6 py-2 text-xs',
+    md: 'px-8 py-3 text-sm',
+    lg: 'px-10 py-4 text-base',
   };
 
-  const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+  const innerClasses = `
+    ${sizes[size]} 
+    text-white rounded-full font-medium 
+    bg-gray-900/80 backdrop-blur 
+    flex items-center gap-2 justify-center
+    disabled:opacity-50 disabled:cursor-not-allowed
+    w-full h-full
+  `;
+
+  if (variant === 'primary') {
+    return (
+      <motion.div
+        whileHover={{ scale: disabled ? 1 : 1.05 }}
+        whileTap={{ scale: disabled ? 1 : 1.0 }}
+        className={`rainbow relative z-0 bg-white/15 overflow-hidden p-[2px] rounded-full group ${className} ${disabled ? 'opacity-50 pointer-events-none' : ''}`}
+      >
+        <button
+          onClick={onClick}
+          disabled={disabled}
+          type={type}
+          className={innerClasses}
+        >
+          {icon}
+          {children}
+        </button>
+      </motion.div>
+    );
+  }
+
+  // Other variants (glass style)
+  const otherVariantClasses = {
+    secondary: 'bg-white/10 hover:bg-white/20 border-white/10 text-white',
+    danger: 'bg-red-500/20 hover:bg-red-500/30 border-red-500/20 text-red-50',
+    success: 'bg-green-500/20 hover:bg-green-500/30 border-green-500/20 text-green-50',
   };
 
   return (
@@ -45,13 +74,13 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       type={type}
       className={`
-        ${variants[variant]} 
+        ${otherVariantClasses[variant as keyof typeof otherVariantClasses] || otherVariantClasses.secondary}
         ${sizes[size]} 
-        rounded-lg font-medium 
+        rounded-full font-medium border
         transition-all duration-200 
         flex items-center gap-2 justify-center
         disabled:opacity-50 disabled:cursor-not-allowed
-        shadow-md hover:shadow-lg
+        shadow-md hover:shadow-lg backdrop-blur-sm
         ${className}
       `}
     >

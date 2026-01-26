@@ -30,7 +30,7 @@ export const DemoInfo: React.FC<DemoInfoProps> = memo(function DemoInfo({ classN
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
-        className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-shadow"
+        className="w-10 h-10 bg-gradient-to-br from-green-900 to-green-600 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-shadow"
         aria-label="App information"
       >
         <Info size={20} />
@@ -57,11 +57,11 @@ export const DemoInfo: React.FC<DemoInfoProps> = memo(function DemoInfo({ classN
               className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-md h-fit max-h-[calc(100vh-2rem)] bg-white rounded-2xl shadow-2xl z-[60] overflow-auto"
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+              <div className="bg-gradient-to-r from-green-900 to-green-600 px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                      <Sparkles className="text-white" size={24} />
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                      <SwatchBook className="text-green-400" size={28}/>
                     </div>
                     <div>
                       <h2 className="text-xl font-bold text-white">AppointmentHub</h2>
@@ -133,7 +133,7 @@ export const DemoInfo: React.FC<DemoInfoProps> = memo(function DemoInfo({ classN
                 </div>
 
                 {/* Footer Note */}
-                <p className="text-xs text-gray-400 text-center">
+                <p className="text-xs text-white text-center">
                   Click &quot;Try Demo&quot; on the login page or use credentials above
                 </p>
               </div>

@@ -19,11 +19,11 @@ export const Card: React.FC<CardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={
-        hover ? { y: -4, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' } : {}
+        hover ? { y: -4, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 166, 62, 0.2)' } : {}
       }
       className={`
-        bg-white rounded-xl shadow-lg p-6 
-        transition-all duration-200
+        bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 
+        transition-all duration-300
         ${className}
       `}
     >
