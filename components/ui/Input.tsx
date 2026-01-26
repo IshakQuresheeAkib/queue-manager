@@ -50,7 +50,7 @@ export const Input: React.FC<InputProps> = ({
             w-full bg-[#00A63E]/5 border border-white/20 
             rounded-lg px-4 py-3 
             ${icon ? 'pl-10' : ''}
-            text-white placeholder:text-white placeholder:text-sm
+            text-white placeholder:text-white/50 placeholder:text-sm
             focus:outline-none focus:border-green-600 
             transition duration-300
             ${error ? 'border-red-500/50' : ''}
