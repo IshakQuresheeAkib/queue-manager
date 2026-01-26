@@ -34,16 +34,17 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black relative">
+      <div className="fixed inset-0 bg-green-500/5 pointer-events-none z-0" />
       <Navbar onMenuClick={() => setSidebarOpen(true)} />
-      <div className="flex">
+      <div className="flex relative z-10">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="flex-1 p-6 max-w-7xl mx-auto w-full">{children}</main>
       </div>
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/50 z-10 lg:hidden"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-10 lg:hidden"
         />
       )}
     </div>

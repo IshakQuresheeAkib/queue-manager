@@ -7,8 +7,7 @@ import { motion } from 'framer-motion';
 import { getServices, getStaff, getAppointments, addAppointment, addActivityLog } from '@/lib/supabase/queries';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
+import { Input } from '@/components/ui/Input';import { Heading } from "@/components/ui/Heading";import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { FormSkeleton } from '@/components/ui/PageSkeletons';
 import { useToast } from '@/components/ui/ToastContext';
@@ -257,8 +256,7 @@ export default function NewAppointmentPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">New Appointment</h1>
-        <p className="text-gray-600 mt-1">Fill in the appointment details</p>
+        <Heading title="New Appointment" tagline="Fill in the appointment details" />
       </div>
 
       {error && (
@@ -316,7 +314,7 @@ export default function NewAppointmentPage() {
 
           {serviceId && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-400 mb-2">
                 Assign Staff (Optional)
               </label>
               <div className="space-y-2">
@@ -358,11 +356,11 @@ export default function NewAppointmentPage() {
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-gray-700">{s.name}</p>
-                              <p className="text-sm text-gray-600">{s.service_type}</p>
+                              <p className="font-medium text-gray-100">{s.name}</p>
+                              <p className="text-sm text-gray-400">{s.service_type}</p>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-gray-500">
+                            <div className="flex items-center gap-2 text-gray-400">
+                              <span className="text-sm text-gray-400">
                                 {load} / {s.daily_capacity} appointments today
                               </span>
                               {isOnLeave ? (

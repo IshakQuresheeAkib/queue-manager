@@ -31,13 +31,13 @@ export const Input: React.FC<InputProps> = ({
       className="w-full"
     >
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {label} {required && <span className="text-red-500">*</span>}
+        <label className="block text-sm text-white mb-2">
+          {label} {required && <span className="text-red-400">*</span>}
         </label>
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2">
             {icon}
           </div>
         )}
@@ -47,12 +47,13 @@ export const Input: React.FC<InputProps> = ({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className={`
-            w-full px-4 py-2 
-            ${icon ? 'pl-10' : ''} 
-            border rounded-lg text-gray-700
-            focus:ring-2 focus:ring-blue-500 focus:border-transparent
-            transition-all duration-200
-            ${error ? 'border-red-500' : 'border-gray-300'}
+            w-full bg-[#00A63E]/5 border border-white/20 
+            rounded-lg px-4 py-3 
+            ${icon ? 'pl-10' : ''}
+            text-white placeholder:text-white placeholder:text-sm
+            focus:outline-none focus:border-green-600 
+            transition duration-300
+            ${error ? 'border-red-500/50' : ''}
           `}
         />
       </div>
@@ -60,7 +61,7 @@ export const Input: React.FC<InputProps> = ({
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-red-500 text-sm mt-1"
+          className="text-red-400 text-sm mt-1"
         >
           {error}
         </motion.p>

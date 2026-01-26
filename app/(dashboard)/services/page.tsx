@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Briefcase, Edit2, Trash2 } from 'lucide-react';
 import { getServices, addService, updateService, deleteService, getAppointments, addActivityLog, getAllUniqueTypes } from '@/lib/supabase/queries';
 import { Button } from '@/components/ui/Button';
+import { Heading } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
@@ -183,8 +184,7 @@ export default function ServicesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Services</h1>
-          <p className="text-gray-600 mt-1">Manage available services</p>
+          <Heading title="Services" tagline="Manage available services" />
         </div>
         <Button onClick={() => openModal()} icon={<Plus size={20} />} disabled={loading}>
           Add Service
@@ -211,7 +211,7 @@ export default function ServicesPage() {
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Briefcase className="text-gray-400" size={32} />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Services</h3>
+            <h3 className="text-lg font-medium text-gray-200 mb-2">No Services</h3>
             <p className="text-gray-600 mb-4">Create your first service to get started</p>
             <Button onClick={() => openModal()} icon={<Plus size={20} />}>
               Add Service
@@ -228,15 +228,15 @@ export default function ServicesPage() {
                     <Briefcase className="text-purple-600" size={24} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">{service.name}</h3>
-                    <p className="text-sm text-gray-600">{service.duration} minutes</p>
+                    <h3 className="font-bold text-gray-200">{service.name}</h3>
+                    <p className="text-sm text-gray-400">{service.duration} minutes</p>
                   </div>
                 </div>
               </div>
               <div className="mb-4">
                 <Badge variant="info">Requires: {service.required_staff_type}</Badge>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-gray-400">
                 <Button size="sm" variant="secondary" icon={<Edit2 size={16} />} onClick={() => openModal(service)} className="flex-1">
                   Edit
                 </Button>

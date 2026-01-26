@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { FormSkeleton } from '@/components/ui/PageSkeletons';
+import { Heading } from '@/components/ui/Heading';
 import type { Staff, Service, Appointment, AppointmentStatus } from '@/types';
 import { useAuth } from '@/components/ui/AuthContext';
 
@@ -201,8 +202,7 @@ export default function EditAppointmentPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Edit Appointment</h1>
-        <p className="text-gray-600 mt-1">Update appointment details</p>
+        <Heading title="Edit Appointment" tagline="Update appointment details" />
       </div>
 
       {error && (
@@ -311,7 +311,7 @@ export default function EditAppointmentPage() {
                               <p className="font-medium text-gray-700">{s.name}</p>
                               <p className="text-sm text-gray-600">{s.service_type}</p>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 text-gray-400">
                               <span className="text-sm text-gray-500">
                                 {load} / {s.daily_capacity} today
                               </span>

@@ -9,7 +9,7 @@ export default function NotFound() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4 overflow-hidden relative">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 overflow-hidden relative">
       {/* Floating background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -22,7 +22,7 @@ export default function NotFound() {
             repeat: Infinity,
             ease: 'easeInOut',
           }}
-          className="absolute top-20 left-10 w-20 h-20 bg-blue-200/40 rounded-full blur-xl"
+          className="absolute top-20 left-10 w-20 h-20 bg-green-500/20 rounded-full blur-xl"
         />
         <motion.div
           animate={{
@@ -34,7 +34,7 @@ export default function NotFound() {
             repeat: Infinity,
             ease: 'easeInOut',
           }}
-          className="absolute top-40 right-20 w-32 h-32 bg-purple-200/40 rounded-full blur-xl"
+          className="absolute top-40 right-20 w-32 h-32 bg-emerald-500/20 rounded-full blur-xl"
         />
         <motion.div
           animate={{
@@ -46,19 +46,7 @@ export default function NotFound() {
             repeat: Infinity,
             ease: 'easeInOut',
           }}
-          className="absolute bottom-20 left-1/4 w-24 h-24 bg-pink-200/40 rounded-full blur-xl"
-        />
-        <motion.div
-          animate={{
-            y: [0, -15, 0],
-            x: [0, -10, 0],
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-          className="absolute bottom-40 right-1/4 w-16 h-16 bg-yellow-200/40 rounded-full blur-xl"
+          className="absolute bottom-20 left-1/4 w-24 h-24 bg-teal-500/20 rounded-full blur-xl"
         />
       </div>
 
@@ -77,12 +65,12 @@ export default function NotFound() {
         >
           <div className="relative inline-block">
             {/* Glowing effect behind 404 */}
-            <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-blue-400 to-purple-400 opacity-30 scale-150" />
+            <div className="absolute inset-0 blur-3xl bg-green-500/30 scale-150" />
             
             <motion.h1
               className="relative text-[120px] sm:text-[150px] md:text-[180px] font-black leading-none"
               style={{
-                background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)',
+                background: 'linear-gradient(135deg, #ffffff 0%, #4ade80 50%, #059669 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -109,9 +97,9 @@ export default function NotFound() {
               repeat: Infinity,
               repeatDelay: 3,
             }}
-            className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg"
+            className="inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur border border-white/20 rounded-full shadow-lg text-white"
           >
-            <Search className="w-8 h-8 text-gray-400" />
+            <Search className="w-8 h-8 opacity-80" />
           </motion.div>
         </motion.div>
 
@@ -122,10 +110,10 @@ export default function NotFound() {
           transition={{ delay: 0.3 }}
           className="mb-8"
         >
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
             Page Not Found
           </h2>
-          <p className="text-gray-600 text-base sm:text-lg max-w-md mx-auto px-4">
+          <p className="text-white/60 text-base sm:text-lg max-w-md mx-auto px-4">
             Oops! The page you&apos;re looking for seems to have wandered off. 
             Let&apos;s get you back on track.
           </p>
@@ -140,7 +128,7 @@ export default function NotFound() {
         >
           <Link
             href="/dashboard"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 hover:scale-105 transition-all duration-200"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-full shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30 hover:scale-105 transition-all duration-200"
           >
             <Home size={20} />
             Go to Dashboard
@@ -148,7 +136,7 @@ export default function NotFound() {
           
           <button
             onClick={() => router.back()}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 font-semibold rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 border border-gray-200"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 backdrop-blur text-white font-semibold rounded-full shadow-md hover:bg-white/20 hover:scale-105 transition-all duration-200 border border-white/10"
           >
             <ArrowLeft size={20} />
             Go Back
@@ -173,7 +161,7 @@ export default function NotFound() {
                 repeat: Infinity,
                 delay: i * 0.2,
               }}
-              className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-400 to-purple-400"
+              className="w-2 h-2 rounded-full bg-gradient-to-r from-green-400 to-emerald-400"
             />
           ))}
         </motion.div>

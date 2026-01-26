@@ -34,7 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       animate={{
         x: isOpen || (typeof window !== 'undefined' && window.innerWidth >= 1024) ? 0 : -280,
       }}
-      className="fixed lg:sticky top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-white shadow-lg z-20 overflow-y-auto"
+      className="fixed lg:sticky top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-black/50 backdrop-blur-xl border-r border-white/10 z-20 overflow-y-auto"
     >
       <div className="p-4 space-y-2">
         {menuItems.map((item) => (
@@ -44,11 +44,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             onClick={() => handleNavigate(item.path)}
             className={`
               w-full flex items-center gap-3 px-4 py-3 rounded-lg
-              transition-colors duration-200
+              transition-all duration-200 border border-transparent
               ${
                 pathname === item.path
-                  ? 'bg-blue-50 text-blue-600 font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-[#00A63E]/10 text-green-400 font-medium border-green-500/20'
+                  : 'text-white/70 hover:bg-white/5 hover:text-white hover:border-white/5'
               }
             `}
           >

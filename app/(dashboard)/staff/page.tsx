@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, User, Edit2, Trash2, Users } from 'lucide-react';
 import { getStaff, addStaff, updateStaff, deleteStaff, getAppointments, updateAppointment, addActivityLog, getAllUniqueTypes } from '@/lib/supabase/queries';
 import { Button } from '@/components/ui/Button';
+import { Heading } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
@@ -241,8 +242,7 @@ export default function StaffPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
-          <p className="text-gray-600 mt-1">Manage your team members</p>
+          <Heading title="Staff Management" tagline="Manage your team members" />
         </div>
         <Button onClick={() => openModal()} icon={<Plus size={20} />} disabled={loading}>
           Add Staff
@@ -251,7 +251,7 @@ export default function StaffPage() {
 
       {error && (
         <Card>
-          <div className="text-center py-4 text-red-600">
+          <div className="text-center py-4 text-red-500">
             <p>{error}</p>
           </div>
         </Card>
@@ -266,11 +266,11 @@ export default function StaffPage() {
       ) : staff.length === 0 ? (
         <Card>
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="text-gray-400" size={32} />
+            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="text-white/40" size={32} />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Staff Members</h3>
-            <p className="text-gray-600 mb-4">Get started by adding your first staff member</p>
+            <h3 className="text-lg font-medium text-white mb-2">No Staff Members</h3>
+            <p className="text-white/60 mb-4">Get started by adding your first staff member</p>
             <Button onClick={() => openModal()} icon={<Plus size={20} />}>
               Add Staff Member
             </Button>
@@ -282,12 +282,12 @@ export default function StaffPage() {
             <Card key={s.id} hover>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <User className="text-blue-600" size={24} />
+                  <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <User className="text-green-400" size={24} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">{s.name}</h3>
-                    <p className="text-sm text-gray-600">{s.service_type}</p>
+                    <h3 className="font-bold text-white">{s.name}</h3>
+                    <p className="text-sm text-white/60">{s.service_type}</p>
                   </div>
                 </div>
                 <Badge variant={s.availability_status === 'Available' ? 'success' : 'warning'}>
@@ -296,11 +296,11 @@ export default function StaffPage() {
               </div>
               <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Daily Capacity</span>
-                  <span className="font-medium text-gray-700">{s.daily_capacity} appointments</span>
+                  <span className="text-white/60">Daily Capacity</span>
+                  <span className="font-medium text-white/80">{s.daily_capacity} appointments</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-gray-400">
                 <Button size="sm" variant="secondary" onClick={() => toggleAvailability(s.id)} className="flex-1">
                   {s.availability_status === 'Available' ? 'Set On Leave' : 'Set Available'}
                 </Button>

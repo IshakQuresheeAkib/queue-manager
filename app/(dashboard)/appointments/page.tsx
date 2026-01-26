@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, Calendar, Clock, Briefcase, User, Edit2, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { getAppointmentsWithDetails, deleteAppointment, updateAppointment, getStaff, addActivityLog } from '@/lib/supabase/queries';
 import { Button } from '@/components/ui/Button';
+import { Heading } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
@@ -134,8 +135,7 @@ export default function AppointmentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
-          <p className="text-gray-600 mt-1">Manage all appointments</p>
+          <Heading title="Appointments" tagline="Manage all appointments" />
         </div>
         <Button onClick={() => router.push('/appointments/new')} icon={<Plus size={20} />} disabled={loading}>
           New Appointment
@@ -193,7 +193,7 @@ export default function AppointmentsPage() {
               <div className="flex items-start justify-between flex-wrap gap-4">
                 <div className="flex-1 min-w-[250px]">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-bold text-gray-900">{apt.customer_name}</h3>
+                    <h3 className="text-lg font-bold text-gray-200">{apt.customer_name}</h3>
                     {apt.in_queue ? (
                       <Badge variant="warning">Queue #{apt.queue_position}</Badge>
                     ) : (
@@ -211,19 +211,19 @@ export default function AppointmentsPage() {
                     )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-gray-400">
                       <Briefcase size={16} />
                       {apt.service?.name || 'N/A'} ({apt.service?.duration} min)
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-gray-400">
                       <User size={16} />
                       {apt.staff?.name || 'Unassigned'}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-gray-400">
                       <Calendar size={16} />
                       {new Date(apt.appointment_date).toLocaleDateString()}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-gray-400">
                       <Clock size={16} />
                       {formatTime12Hour(apt.appointment_time)}
                     </div>
