@@ -25,9 +25,9 @@ export const Button: React.FC<ButtonProps> = ({
   type = 'button',
 }) => {
   const sizes = {
-    sm: 'px-6 py-2 text-xs',
-    md: 'px-8 py-3 text-sm',
-    lg: 'px-10 py-4 text-base',
+    sm: 'px-2 py-2 text-xs',
+    md: 'px-6 py-2.5 text-sm',
+    lg: 'px-8 py-3 text-base',
   };
 
   const innerClasses = `
@@ -62,7 +62,7 @@ export const Button: React.FC<ButtonProps> = ({
   // Other variants (glass style)
   const otherVariantClasses = {
     secondary: 'bg-white/10 hover:bg-white/20 border-white/10 text-white',
-    danger: 'bg-red-500/20 hover:bg-red-500/30 border-red-500/20 text-red-50',
+    danger: 'bg-red-500/70 hover:bg-red-500/30 border-red-500/20 text-red-50',
     success: 'bg-green-500/20 hover:bg-green-500/30 border-green-500/20 text-green-50',
   };
 

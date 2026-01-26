@@ -70,7 +70,7 @@ export const DemoInfo: React.FC<DemoInfoProps> = memo(function DemoInfo({ classN
                   </div>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="text-white/80 hover:text-white transition-colors"
+                    className="text-white hover:text-white transition-colors"
                   >
                     <X size={24} />
                   </button>

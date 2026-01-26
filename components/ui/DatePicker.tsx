@@ -55,7 +55,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="block text-sm font-medium text-white/80">
+        <label className="block text-sm font-medium text-white">
           {label}
           {required && <span className="text-red-400 ml-1">*</span>}
         </label>

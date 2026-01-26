@@ -78,7 +78,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   return (
     <div className="space-y-2 ">
       {label && (
-        <label className="block text-sm font-medium text-white/80">
+        <label className="block text-sm font-medium text-white">
           {label}
           {required && <span className="text-red-400 ml-1">*</span>}
         </label>
@@ -96,6 +96,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
           minTime={minTime}
           maxTime={maxTime}
           timeCaption="Select Time"
+          dateFormat="HH:mm"
           placeholderText={placeholder}
           disabled={disabled}
           customInput={<CustomInput placeholder={placeholder} disabled={disabled} />}
