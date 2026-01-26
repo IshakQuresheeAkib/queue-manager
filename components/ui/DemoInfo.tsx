@@ -60,7 +60,7 @@ export const DemoInfo: React.FC<DemoInfoProps> = memo(function DemoInfo({ classN
               <div className="bg-gradient-to-r from-green-900 to-green-600 px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10  rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center">
                       <SwatchBook className="text-green-400" size={28}/>
                     </div>
                     <div>
