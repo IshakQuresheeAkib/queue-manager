@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Calendar, Mail, Lock, SwatchBook } from 'lucide-react';
+import { Mail, Lock, SwatchBook } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { DemoInfo } from '@/components/ui/DemoInfo';
