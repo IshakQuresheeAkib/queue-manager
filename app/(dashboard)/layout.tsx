@@ -42,7 +42,7 @@ export default function DashboardLayout({
         onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
         isSidebarOpen={sidebarOpen} 
       />
-      <div className="flex relative z-10">
+      <div className="flex relative z-10 pt-16">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full">{children}</main>
       </div>
