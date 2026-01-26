@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Calendar, LogOut, Menu, SwatchBook, User as UserIcon } from 'lucide-react';
+import { LogOut, SwatchBook, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '../ui/AuthContext';
 import { useToast } from '../ui/ToastContext';
@@ -10,9 +10,10 @@ import { useRouter } from 'next/navigation';
 
 interface NavbarProps {
   onMenuClick: () => void;
+  isSidebarOpen: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
   const { user, logout } = useAuth();
   const toast = useToast();
   const router = useRouter();
@@ -28,14 +29,25 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
-            <button onClick={onMenuClick} className="lg:hidden text-white/70 hover:text-white">
-              <Menu size={24} />
+            <button 
+              onClick={onMenuClick} 
+              className="lg:hidden text-white/70 hover:text-white transition-colors p-2"
+              aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+            >
+              <div id="nav-icon2" className={isSidebarOpen ? 'open' : ''}>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
             </button>
             <div className="flex items-center gap-2 text-gray-400">
               <div className="w-10 h-10  rounded-lg flex items-center justify-center">
                 <SwatchBook className="text-green-400" size={28}/>
               </div>
-              <span className="text-xl font-bold text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-green-400">AppointmentHub</span>
+              <span className="text-xl font-bold text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-green-400 hidden sm:inline">AppointmentHub</span>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -60,7 +72,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
                 <span className="avatar-indicator"></span>
               </div>
             </button>
-            <Button variant="secondary" size="sm" icon={<LogOut size={16} />} onClick={handleLogout}>
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              icon={<LogOut size={16} />} 
+              onClick={handleLogout}
+              className="hidden min-[600px]:flex"
+            >
               Logout
             </Button>
           </div>
