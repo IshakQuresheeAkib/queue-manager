@@ -27,11 +27,6 @@ const dateToString = (date: Date | null): string => {
   return `${year}-${month}-${day}`;
 };
 
-const stringToDate = (dateStr: string): Date | null => {
-  if (!dateStr) return null;
-  return new Date(dateStr + 'T00:00:00');
-};
-
 export default function NewAppointmentPage() {
   const router = useRouter();
   const { user } = useAuth();
