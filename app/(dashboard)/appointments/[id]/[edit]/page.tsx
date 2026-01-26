@@ -329,7 +329,7 @@ export default function EditAppointmentPage() {
                               <p className="font-medium text-gray-700">{s.name}</p>
                               <p className="text-sm text-gray-600">{s.service_type}</p>
                             </div>
-                            <div className="flex items-center gap-2 text-gray-400">
+                            <div className="flex items-center gap-2 text-white">
                               <span className="text-sm text-gray-500">
                                 {load} / {s.daily_capacity} today
                               </span>

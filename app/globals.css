@@ -124,6 +124,21 @@ body {
 }
 
 /* React DatePicker Dark Theme */
+#datepicker-portal {
+  position: relative;
+  z-index: 9999;
+}
+
+.react-datepicker-popper,
+.dark-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+.react-datepicker__tab-loop {
+  position: absolute !important;
+  z-index: 9999 !important;
+}
+
 .react-datepicker {
   background-color: rgba(0, 0, 0, 0.95) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;

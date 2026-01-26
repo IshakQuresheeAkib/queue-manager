@@ -76,6 +76,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           wrapperClassName="w-full"
           calendarClassName="dark-datepicker"
           popperClassName="dark-datepicker-popper"
+          portalId="datepicker-portal"
+          popperPlacement="bottom-start"
         />
       </div>
       {error && <p className="text-sm text-red-400">{error}</p>}

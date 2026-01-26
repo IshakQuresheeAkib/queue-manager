@@ -30,7 +30,7 @@ const Toast: React.FC<{
     >
       {icons[type]}
       <p className="text-gray-900 font-medium">{message}</p>
-      <button onClick={onClose} className="ml-auto text-gray-400 hover:text-gray-600">
+      <button onClick={onClose} className="ml-auto text-white hover:text-gray-600">
         <X size={18} />
       </button>
     </motion.div>

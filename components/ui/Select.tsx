@@ -33,7 +33,7 @@ export const Select: React.FC<{
           ${error ? 'border-red-500/50' : ''}
         `}
       >
-        {placeholder && <option value="" className="bg-zinc-900 text-gray-400">{placeholder}</option>}
+        {placeholder && <option value="" className="bg-zinc-900 text-white">{placeholder}</option>}
         {options.map(opt => (
           <option key={opt.value} value={opt.value} className="bg-zinc-900 text-white">
             {opt.label}

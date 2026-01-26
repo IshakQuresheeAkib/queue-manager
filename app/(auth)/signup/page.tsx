@@ -54,7 +54,7 @@ const SignupPage: React.FC = () => {
   return (
     <section className="relative bg-black min-h-screen flex items-center justify-center px-4 py-20 overflow-hidden">
         {/* Background Glow */}
-       <div className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none mb-10 size-140 bg-purple-500/20 rounded-full blur-[200px]'></div>
+       <div className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none w-[500px] h-[500px] bg-green-500/30 rounded-full blur-[150px]'></div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -67,9 +67,9 @@ const SignupPage: React.FC = () => {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 200 }}
-              className="inline-flex items-center justify-center w-16 h-16 bg-purple-500/10 border border-purple-500/20 rounded-full mb-4"
+              className="inline-flex items-center justify-center w-16 h-16 bg-green-500/10 border border-green-500/20 rounded-full mb-4"
             >
-              <UserPlus className="text-purple-400" size={32} />
+              <UserPlus className="text-green-400" size={32} />
             </motion.div>
             
             <Heading title="Create Account" tagline="Start managing appointments" align="center" />

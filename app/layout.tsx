@@ -26,6 +26,7 @@ export default function RootLayout({
         <AuthProvider>
           <ToastProvider>{children}</ToastProvider>
         </AuthProvider>
+        <div id="datepicker-portal"></div>
       </body>
     </html>
   );

@@ -43,11 +43,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) =>
                 <span></span>
               </div>
             </button>
-            <div className="flex items-center gap-2 text-gray-400">
+            <div className="flex items-center gap-2 text-white">
               <div className="w-10 h-10  rounded-lg flex items-center justify-center">
                 <SwatchBook className="text-green-400" size={28}/>
               </div>
-              <span className="text-xl font-bold text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-green-400 hidden sm:inline">AppointmentHub</span>
+              <span className="text-2xl font-bold text-white bg-clip-text bg-gradient-to-r from-white to-green-400 hidden sm:inline">AppointmentHub</span>
             </div>
           </div>
           <div className="flex items-center gap-4">

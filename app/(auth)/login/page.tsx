@@ -54,7 +54,7 @@ export default function LoginPage() {
   return (
     <section className='relative bg-black min-h-screen flex flex-col md:flex-row items-center justify-center px-4 py-20 gap-20 overflow-hidden'>
        {/* Background Glow */}
-       <div className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none mb-10 size-140 bg-green-500/20 rounded-full blur-[200px]'></div>
+       <div className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none w-[500px] h-[500px] bg-green-500/30 rounded-full blur-[150px]'></div>
 
        <div className='absolute top-4 right-4 z-20'>
         <DemoInfo />

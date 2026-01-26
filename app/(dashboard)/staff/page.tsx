@@ -300,7 +300,7 @@ export default function StaffPage() {
                   <span className="font-medium text-white/80">{s.daily_capacity} appointments</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-gray-400">
+              <div className="flex items-center gap-2 text-white">
                 <Button size="sm" variant="secondary" onClick={() => toggleAvailability(s.id)} className="flex-1">
                   {s.availability_status === 'Available' ? 'Set On Leave' : 'Set Available'}
                 </Button>

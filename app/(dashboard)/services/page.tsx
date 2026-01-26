@@ -209,7 +209,7 @@ export default function ServicesPage() {
         <Card>
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Briefcase className="text-gray-400" size={32} />
+              <Briefcase className="text-white" size={32} />
             </div>
             <h3 className="text-lg font-medium text-gray-200 mb-2">No Services</h3>
             <p className="text-gray-600 mb-4">Create your first service to get started</p>
@@ -229,14 +229,14 @@ export default function ServicesPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-200">{service.name}</h3>
-                    <p className="text-sm text-gray-400">{service.duration} minutes</p>
+                    <p className="text-sm text-white">{service.duration} minutes</p>
                   </div>
                 </div>
               </div>
               <div className="mb-4">
                 <Badge variant="info">Requires: {service.required_staff_type}</Badge>
               </div>
-              <div className="flex items-center gap-2 text-gray-400">
+              <div className="flex items-center gap-2 text-white">
                 <Button size="sm" variant="secondary" icon={<Edit2 size={16} />} onClick={() => openModal(service)} className="flex-1">
                   Edit
                 </Button>

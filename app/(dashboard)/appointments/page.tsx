@@ -187,7 +187,7 @@ export default function AppointmentsPage() {
         ) : filteredAppointments.length === 0 ? (
           <Card>
             <div className="text-center py-12">
-              <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
+              <Calendar className="mx-auto text-white mb-4" size={48} />
               <p className="text-gray-500 text-lg">No appointments found</p>
               <Button onClick={() => router.push('/appointments/new')} className="mt-4">
                 Create Your First Appointment
@@ -218,19 +218,19 @@ export default function AppointmentsPage() {
                     )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-                    <div className="flex items-center gap-2 text-gray-400">
+                    <div className="flex items-center gap-2 text-white">
                       <Briefcase size={16} />
                       {apt.service?.name || 'N/A'} ({apt.service?.duration} min)
                     </div>
-                    <div className="flex items-center gap-2 text-gray-400">
+                    <div className="flex items-center gap-2 text-white">
                       <User size={16} />
                       {apt.staff?.name || 'Unassigned'}
                     </div>
-                    <div className="flex items-center gap-2 text-gray-400">
+                    <div className="flex items-center gap-2 text-white">
                       <Calendar size={16} />
                       {new Date(apt.appointment_date).toLocaleDateString()}
                     </div>
-                    <div className="flex items-center gap-2 text-gray-400">
+                    <div className="flex items-center gap-2 text-white">
                       <Clock size={16} />
                       {formatTime12Hour(apt.appointment_time)}
                     </div>

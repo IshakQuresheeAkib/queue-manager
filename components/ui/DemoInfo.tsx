@@ -133,7 +133,7 @@ export const DemoInfo: React.FC<DemoInfoProps> = memo(function DemoInfo({ classN
                 </div>
 
                 {/* Footer Note */}
-                <p className="text-xs text-gray-400 text-center">
+                <p className="text-xs text-white text-center">
                   Click &quot;Try Demo&quot; on the login page or use credentials above
                 </p>
               </div>

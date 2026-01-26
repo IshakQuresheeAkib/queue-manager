@@ -165,7 +165,7 @@ export const Combobox: React.FC<ComboboxProps> = ({
             <button
               type="button"
               onClick={handleClear}
-              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-1 text-white hover:text-gray-600 transition-colors"
             >
               <X size={16} />
             </button>
@@ -177,7 +177,7 @@ export const Combobox: React.FC<ComboboxProps> = ({
               if (!isOpen) inputRef.current?.focus();
             }}
             disabled={disabled}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors disabled:cursor-not-allowed"
+            className="p-1 text-white hover:text-gray-600 transition-colors disabled:cursor-not-allowed"
           >
             <ChevronDown
               size={18}
