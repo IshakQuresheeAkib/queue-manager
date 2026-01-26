@@ -83,16 +83,22 @@ export const ImageCropUpload: React.FC<ImageCropUploadProps> = ({
         croppedAreaPixels.height
       );
 
-      return new Promise<File>((resolve) => {
+      const file = await new Promise<File>((resolve, reject) => {
         canvas.toBlob((blob) => {
-          if (!blob) return;
+          if (!blob) {
+            reject(new Error('Failed to create image blob'));
+            return;
+          }
           const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
           resolve(file);
         }, 'image/jpeg', 0.95);
       });
+      
+      return file;
     } catch (e) {
       console.error('Error creating cropped image:', e);
       setError('Failed to crop image');
+      return undefined;
     }
   }, [imageSrc, croppedAreaPixels]);
 

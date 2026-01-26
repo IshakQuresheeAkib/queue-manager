@@ -2,7 +2,7 @@
 
 import React, { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Info, X, Mail, Lock, Sparkles, Check } from 'lucide-react';
+import { Info, X, Mail, Lock, Sparkles, SwatchBook } from 'lucide-react';
 import { demoCredentials } from '@/lib/constants/demo';
 
 interface DemoInfoProps {
