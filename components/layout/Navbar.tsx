@@ -47,7 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) =>
               <div className="w-11 h-11 rounded-lg flex items-center justify-center">
                 <SwatchBook className="text-green-400" size={28}/>
               </div>
-              <span className="text-2xl font-bold tracking-wider text-white bg-clip-text bg-gradient-to-r from-white to-green-400 hidden sm:inline" style={{fontFamily: 'var(--font-montserrat)'}}>AppointmentHub</span>
+              <span className="text-2xl font-extrabold tracking-wider text-white bg-clip-text bg-gradient-to-r from-white to-green-400 hidden sm:inline">Appointment<span className='text-green-300'>Hub</span></span>
             </div>
           </div>
           <div className="flex items-center gap-4">
