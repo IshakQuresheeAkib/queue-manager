@@ -1,224 +1,116 @@
-# Smart Appointment & Queue Manager
+# ✨ Smart Appointment & Queue Manager
 
-A comprehensive web application to manage service appointments, staff availability, and customer queues with intelligent conflict detection and queue management.
+Modern queue + appointment management for service businesses.
 
-## 🚀 Demo Account
+<p align="center">
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=nextdotjs" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Auth%20%7C%20DB%20%7C%20Realtime-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" />
+  <img alt="Tailwind" src="https://img.shields.io/badge/Tailwind_CSS-UI-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" />
+</p>
 
-Try the app instantly with our demo account:
+## 🎯 What This App Solves
 
-| Field | Value |
-|-------|-------|
-| **Email** | `demo@example.com` |
-| **Password** | `d#1aEdmO(` |
+- Prevents staff double-booking with conflict checks
+- Assigns available staff automatically where possible
+- Places unassigned bookings into a smart waiting queue
+- Gives live dashboard visibility for appointments, queue, and staff load
 
-> 💡 Click the **ℹ️ info icon** on the login page to view credentials and app features.
-> 
-> Or simply click **"Try Demo Account"** button to login automatically.
+## 🔐 Demo Login
 
-## 🌟 Features
+Use the **ℹ️ icon** on login page or click **Try Demo Account**.
 
-### Authentication & User Management
-- ✅ Email/password authentication with Supabase
-- ✅ User profile management (name, image, address, phone)
-- ✅ Profile image upload to Supabase Storage
-- ✅ Persistent sessions across page reloads
-- ✅ Demo account for quick testing
+## 🌈 Core Features
 
-### Staff Management
-- ✅ Create and manage staff members
-- ✅ Track service types and availability status
-- ✅ Daily capacity limits (max appointments per day)
-- ✅ Staff load visualization
+### 👤 Authentication & Profile
+- Email/password login with Supabase Auth
+- Persistent sessions after reload/browser restart
+- Editable profile (name, phone, address, image)
+- Profile image upload via Supabase Storage
 
-### Service Management
-- ✅ Define services with customizable durations (15/30/60 minutes)
-- ✅ Assign required staff types for each service
-- ✅ Full CRUD operations
+### 🧑‍💼 Staff
+- Add/edit/remove staff members
+- Set service type and availability
+- Daily appointment capacity per staff
+- Staff load visibility for planning
 
-### Appointment Management
-- ✅ Create appointments with customer details
-- ✅ Smart staff assignment based on availability
-- ✅ Conflict detection for overlapping appointments
-- ✅ Status tracking (Scheduled, Completed, Cancelled, No-Show)
-- ✅ Edit and delete appointments
+### 🛠️ Services
+- Create services with 15/30/60 min durations
+- Define required staff type per service
+- Full CRUD workflow
 
-### Queue Management
-- ✅ Automatic queue for appointments without available staff
-- ✅ Queue position tracking
-- ✅ Manual staff assignment from queue
-- ✅ Priority-based assignment (earliest appointments first)
+### 📅 Appointments
+- Create and manage customer appointments
+- Smart assignment to eligible staff
+- Overlap conflict warning before save
+- Status flow: Scheduled, Completed, Cancelled, No-Show
 
-### Dashboard
-- ✅ Real-time statistics (total, completed, pending appointments)
-- ✅ Staff load summary
-- ✅ Activity log with recent actions
-- ✅ Quick access to all features
+### 🕒 Queue
+- Auto-queue when no suitable staff is free
+- Queue ordered by appointment time
+- Queue position tracking
+- Manual assignment from queue to staff
 
-### Real-time Updates
-- ✅ Live appointment updates across all pages
-- ✅ Instant queue position changes
-- ✅ Real-time activity log
-- ✅ Supabase Realtime integration
+### 📊 Dashboard & Realtime
+- Live appointment counters (total/pending/completed)
+- Recent activity log
+- Staff load summary
+- Instant updates using Supabase Realtime
 
-## 🛠️ Tech Stack
+## 🧠 Business Rules (Simple)
 
-- **Framework**: Next.js 16 (App Router)
-- **Language**: TypeScript
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Storage**: Supabase Storage (profile images)
-- **Realtime**: Supabase Realtime (live updates)
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
+1. Try to assign an available eligible staff member.
+2. If schedule conflict or no availability, place in queue.
+3. Queue is prioritized by earliest appointment time.
+4. Admin can manually assign queued items any time.
 
-## 🚀 Quick Start
+## 🧰 Tech Stack
 
-### Prerequisites
+- Next.js 16 (App Router)
+- TypeScript
+- Supabase (PostgreSQL, Auth, Storage, Realtime)
+- Tailwind CSS + Framer Motion + Lucide Icons
 
-- Node.js 18+ installed
-- A Supabase account (free tier works)
+## ⚡ Quick Start
 
-### Installation
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd queue-manager
-```
-
-2. **Install dependencies**
+1. Install dependencies
 ```bash
 npm install
 ```
 
-3. **Set up Supabase**
-
-Follow the detailed guide in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) to:
-- Create a Supabase project
-- Configure environment variables
-- Run the database schema
-- Set up storage bucket
-- Enable Realtime
-
-4. **Configure environment variables**
-
-Create a `.env.local` file in the root directory:
+2. Create `.env.local`
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
-5. **Create demo user in Supabase**
+3. Complete Supabase setup in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)
 
-Go to Supabase Dashboard → Authentication → Users → Add User:
-- Email: `demo@example.com`
-- Password: `d#1aEdmO(`
-- Check "Auto Confirm User"
-
-6. **Run the development server**
+4. Run the app
 ```bash
 npm run dev
 ```
+5. Open [http://localhost:3000](http://localhost:3000)
 
-7. **Open the app**
+## ✅ Security & Reliability
 
-Navigate to [http://localhost:3000](http://localhost:3000)
+- Row Level Security (RLS) enabled
+- User-isolated data access
+- Session auto-renewal
+- Protected dashboard routes via middleware
 
-## 🎯 Business Logic
+## 🧪 Quick Test Checklist
 
-### Appointment Assignment Rules
+- Login → hard reload → still authenticated
+- Create staff/service/appointment → data persists
+- Book conflicting slot → warning appears
+- Create without available staff → enters queue
 
-1. **Staff Availability Check**:
-   - Shows each eligible staff member with current capacity (e.g., "Farhan (3/5 appointments today)")
-   - Warns if staff exceeds daily capacity
-   - If no staff available, appointment goes to waiting queue
+## 📌 Notes
 
-2. **Conflict Detection**:
-   - Checks for time conflicts when creating/editing appointments
-   - Shows warning: "This staff member already has an appointment at this time"
-   - Offers options to pick another staff or change time
-
-3. **Queue Management**:
-   - Appointments without staff enter the waiting queue
-   - Ordered by appointment time
-   - Shows queue position (1st, 2nd, 3rd...)
-   - Manual assignment from queue to available staff
-
-### Data Persistence
-
-- ✅ **All data stored in Supabase**
-- ✅ **Sessions persist across hard reloads** - you stay signed in
-- ✅ **Data survives browser close** - all appointments, staff, services remain
-- ✅ **Activity logs** track all important actions
-
-### Security
-
-- ✅ **Row Level Security (RLS)** enabled on all tables
-- ✅ Users can only access their own data
-- ✅ **Middleware protection** for all dashboard routes
-- ✅ **Session-based authentication** with automatic renewal
-
-## 📁 Project Structure
-
-```
-queue-manager/
-├── app/
-│   ├── (auth)/                 # Authentication pages
-│   │   ├── login/
-│   │   └── signup/
-│   ├── (dashboard)/            # Protected dashboard pages
-│   │   ├── dashboard/
-│   │   ├── appointments/
-│   │   ├── queue/
-│   │   ├── staff/
-│   │   ├── services/
-│   │   └── profile/
-│   └── layout.tsx
-├── components/
-│   ├── layout/                 # Navbar, Sidebar
-│   └── ui/                     # Reusable UI components
-├── lib/
-│   ├── supabase/               # Supabase client & queries
-│   │   ├── client.ts
-│   │   ├── server.ts
-│   │   ├── queries.ts
-│   │   ├── database.types.ts
-│   │   └── schema.sql
-│   ├── storage/                # (Legacy localStorage - not used)
-│   └── utils/                  # Utility functions
-├── types/
-│   └── index.ts                # TypeScript type definitions
-├── proxy.ts                    # Route protection / proxy middleware
-└── .env.local                  # Environment variables (not in git)
-```
-
-## 🧪 Testing
-
-### Test Session Persistence:
-1. Create account and add data
-2. Hard reload (Ctrl/Cmd + Shift + R)
-3. ✅ Verify you're still logged in
-4. ✅ Verify all data remains
-
-### Test Profile Updates:
-1. Update profile information
-2. Upload profile image
-3. Close and reopen browser
-4. ✅ Verify changes persisted
-
-## 🐛 Troubleshooting
-
-See [SUPABASE_SETUP.md - Troubleshooting](./SUPABASE_SETUP.md#-troubleshooting) section
-
-## 📄 License
-
-This project is open source and available under the MIT License.
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
+- Troubleshooting: [SUPABASE_SETUP.md](./SUPABASE_SETUP.md#-troubleshooting)
+- License: MIT
 
 ---
 
-**Built with ❤️ using Next.js and Supabase**
+Built with ❤️ using Next.js + Supabase
