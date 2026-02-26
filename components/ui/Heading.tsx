@@ -17,9 +17,9 @@ export const Heading: React.FC<HeadingProps> = ({
 }) => {
     return (
         <div className={`heading-two ${align === 'center' ? 'heading-alt-two' : ''} ${className}`}>
-            <h1 className="text-2xl font-extrabold font-mono text-white/70 bg-clip-text bg-gradient-to-r from-white to-green-400 hidden sm:inline leading-tight tracking-widest relative">
+            <h1 className="text-3xl font-extrabold tracking-wide text-white/70 bg-clip-text bg-gradient-to-r from-white to-green-400 hidden sm:inline leading-tight relative">
                 {title}
-                {tagline && <span>{tagline}</span>}
+                {tagline && <span className='text-[11px]'>{tagline}</span>}
             </h1>
         </div>
     );

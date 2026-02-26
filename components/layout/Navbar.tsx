@@ -44,10 +44,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) =>
               </div>
             </button>
             <div className="flex items-center gap-2 text-white">
-              <div className="w-10 h-10  rounded-lg flex items-center justify-center">
+              <div className="w-11 h-11 rounded-lg flex items-center justify-center">
                 <SwatchBook className="text-green-400" size={28}/>
               </div>
-              <span className="text-2xl font-bold text-white bg-clip-text bg-gradient-to-r from-white to-green-400 hidden sm:inline">AppointmentHub</span>
+              <span className="text-2xl font-extrabold tracking-wider text-white bg-clip-text bg-gradient-to-r from-white to-green-400 hidden sm:inline">Appointment<span className='text-green-300'>Hub</span></span>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -55,18 +55,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) =>
               onClick={() => router.push('/profile')}
               className="flex items-center gap-2 hover:bg-white/5 px-3 py-2 rounded-lg transition-colors border border-transparent hover:border-white/10"
             >
-              <div className="avatar-container w-10 h-10">
+              <div className="avatar-container w-11 h-11">
                 {user?.profile?.image_url ? (
                   <Image
                     src={user.profile.image_url}
                     alt="Profile"
-                    width={40}
-                    height={40}
+                    width={60}
+                    height={60}
                     className="avatar-mask w-full h-full object-cover"
                   />
                 ) : (
                   <div className="avatar-mask w-full h-full bg-white/10 flex items-center justify-center">
-                    <UserIcon className="text-white/60" size={20} />
+                    <UserIcon className="text-white/60" size={30} />
                   </div>
                 )}
                 <span className="avatar-indicator"></span>
@@ -74,7 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) =>
             </button>
             <Button 
               variant="secondary" 
-              size="sm" 
+              size="md" 
               icon={<LogOut size={16} />} 
               onClick={handleLogout}
               className="hidden min-[600px]:flex"

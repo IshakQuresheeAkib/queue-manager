@@ -156,7 +156,7 @@ export default function ProfilePage() {
 
           {/* Email (Read-only) */}
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Email
             </label>
             <div className="relative">
@@ -180,7 +180,7 @@ export default function ProfilePage() {
             value={formData.name}
             onChange={(value) => handleInputChange('name', value)}
             placeholder="Enter your full name"
-            icon={<User size={20} color='green' />}
+            icon={<User size={20} />}
           />
 
           {/* Phone */}
@@ -190,17 +190,17 @@ export default function ProfilePage() {
             value={formData.phone}
             onChange={(value) => handleInputChange('phone', value)}
             placeholder="+1 (555) 123-4567"
-            icon={<Phone size={20} color='green' />}
+            icon={<Phone size={20} />}
           />
 
           {/* Address */}
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Address
             </label>
             <div className="relative">
               <div className="absolute top-3 left-3 pointer-events-none">
-                <MapPin color='green' size={20} />
+                <MapPin size={20} />
               </div>
               <textarea
                 value={formData.address}

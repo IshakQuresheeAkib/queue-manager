@@ -214,7 +214,7 @@ export default function DashboardPage() {
                   className="flex items-start gap-3 p-2 hover:bg-white/5 rounded-lg transition-colors"
                 >
                   <span className="text-xs text-white/40 mt-0.5 min-w-[60px]">{timeStr}</span>
-                  <p className="text-sm text-white/80">{log.description}</p>
+                  <p className="text-sm text-white">{log.description}</p>
                 </motion.div>
               );
             })

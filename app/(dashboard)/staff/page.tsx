@@ -297,19 +297,22 @@ export default function StaffPage() {
               <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-white/60">Daily Capacity</span>
-                  <span className="font-medium text-white/80">{s.daily_capacity} appointments</span>
+                  <span className="font-medium text-white">{s.daily_capacity} appointments</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-white">
-                <Button size="sm" variant="secondary" onClick={() => toggleAvailability(s.id)} className="flex-1">
+              <div className="flex items-center justify-between gap-2 text-white">
+                <div className="flex-1">
+                  <Button size="sm" variant="secondary" onClick={() => toggleAvailability(s.id)} className="flex-1">
                   {s.availability_status === 'Available' ? 'Set On Leave' : 'Set Available'}
                 </Button>
-                <Button size="sm" variant="secondary" icon={<Edit2 size={16} />} onClick={() => openModal(s)}>
-                  Edit
+                </div>
+                <div className='flex justify-end items-center gap-1 flex-1'>
+                  <Button size="sm" variant="secondary" icon={<Edit2 size={16} />} onClick={() => openModal(s)}>
+                  {""}
                 </Button>
-                <Button size="sm" variant="danger" icon={<Trash2 size={16} />} onClick={() => handleDelete(s.id)}>
-                  Delete
+                <Button size="sm" variant="danger" icon={<Trash2 size={16} />} onClick={() => handleDelete(s.id)}> {" "}
                 </Button>
+                </div>
               </div>
             </Card>
           ))}

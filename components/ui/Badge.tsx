@@ -12,9 +12,9 @@ export const Badge: React.FC<BadgeProps> = ({
   const variants = {
     success: 'bg-green-500/20 text-green-200 border border-green-500/30',
     warning: 'bg-yellow-500/20 text-yellow-200 border border-yellow-500/30',
-    danger: 'bg-red-500/20 text-red-200 border border-red-500/30',
+    danger: 'bg-red-500/50 text-red-200 border border-red-500/30',
     info: 'bg-blue-500/20 text-blue-200 border border-blue-500/30',
-    default: 'bg-white/10 text-white/80 border border-white/20',
+    default: 'bg-white/10 text-white border border-white/20',
   };
 
   return (

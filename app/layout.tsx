@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Poppins } from 'next/font/google';
+import {  Poppins } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/components/ui/AuthContext';
 import { ToastProvider } from '@/components/ui/ToastContext';
@@ -22,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} font-sans bg-black text-white antialiased`}>
+      <body className={`${poppins.variable} ${poppins.className} bg-black text-white antialiased`}>
         <AuthProvider>
           <ToastProvider>{children}</ToastProvider>
         </AuthProvider>
